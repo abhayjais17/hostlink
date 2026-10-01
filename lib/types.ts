@@ -5,7 +5,8 @@ export type Priority = (typeof PRIORITIES)[number]
 
 export interface User { id: string; name: string; email: string; role: string; color: string }
 export interface Project {
-  id: string; name: string; description: string; color: string; createdAt: string; memberIds: string[]; updatedAt?: string
+  id: string; name: string; description: string; color: string; createdAt: string; memberIds?: string[]; updatedAt?: string
+  members?: Array<{ userId: string; user: User }>
 }
 export interface ProjectSummary {
   project: Project; members: User[]; totalTasks: number; doneTasks: number
@@ -20,6 +21,7 @@ export interface Comment { id: string; taskId: string; authorId: string; body: s
 export interface TaskEvent {
   id: string; taskId: string; projectId: string; userId: string
   fromStatus: Status | null; toStatus: Status; createdAt: string
+  user?: User; task?: Task; project?: Project
 }
 export interface TaskFilters {
   search?: string; assigneeIds?: string[]; priorities?: Priority[]; statuses?: Status[]
