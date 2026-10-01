@@ -69,20 +69,33 @@ export async function searchWorkspace(query: string) {
   }
 }
 
-export async function getUsers() {
-  return fetchJson<any[]>('/api/users')
+// Authentication
+export async function signup(name: string, email: string, password: string) {
+  return fetchJson<any>('/api/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, password })
+  })
+}
+
+export async function login(email: string, password: string) {
+  return fetchJson<any>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  })
+}
+
+export async function logout() {
+  return fetchJson<any>('/api/auth/logout', {
+    method: 'POST'
+  })
 }
 
 export async function getCurrentUser() {
-  return fetchJson<any>('/api/users/me')
+  return fetchJson<any>('/api/auth/me')
 }
 
-export async function setCurrentUser(id: string) {
-  const user = await fetchJson<any>('/api/users', {
-    method: 'PATCH',
-    body: JSON.stringify({ currentUserId: id })
-  })
-  return user
+export async function getUsers() {
+  return fetchJson<any[]>('/api/users')
 }
 
 export async function getProjects() {
