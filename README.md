@@ -276,14 +276,9 @@ DATABASE_URL="postgresql://user:password@host:5432/hostlink?schema=public"
 
 ## Testing
 
-The project includes 62+ tests written for the original in-memory mock API. After the backend migration, tests may require updates to work with real API routes and database state.
+The project includes test files (`lib/*.test.ts`) that were written for an earlier in-memory implementation. **These tests are currently not functional** and need to be rewritten to work with the real Prisma database and API routes.
 
-**Run tests:**
-```bash
-npm run test
-```
-
-**Test coverage includes:**
+**Test coverage areas (to be updated):**
 - Analytics computations (burndown, workload, completion %)
 - Board drag-and-drop logic and transition validation
 - List view filtering and sorting
@@ -291,7 +286,17 @@ npm run test
 - Personal task grouping (My Tasks)
 - Workspace-level analytics
 
-**Note**: Tests currently expect the in-memory mock API. Adapting them to test the real database layer is recommended for production readiness.
+**To run tests** (once updated):
+```bash
+npm run test
+```
+
+**Recommended approach for test updates:**
+- Use a separate test database (e.g., `test.db` via `DATABASE_URL`)
+- Run `prisma db push` before tests to initialize the schema
+- Seed test data in `beforeEach` hooks
+- Clean up test database after each test run
+- Alternatively, mock the Prisma client using libraries like `jest-mock-extended` or `vitest`
 
 ## Deployment
 
