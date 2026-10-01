@@ -17,13 +17,14 @@ function transitionError(from: string, to: string): string {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { toStatus, userId } = body
 
-    const task = await prisma.task.findUnique({ where: { id: params.id } })
+    const task = await prisma.task.findUnique({ where: { id } })
     if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 })
     }
@@ -41,7 +42,7 @@ export async function POST(
 
     const now = new Date()
     const updatedTask = await prisma.task.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: toStatus,
         movedAt: now,
