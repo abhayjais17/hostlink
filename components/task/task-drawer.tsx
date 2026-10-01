@@ -33,7 +33,7 @@ function DrawerDetails({ task, pending, setPending, onClose, onEdit }: { task: T
   const [saved, setSaved] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const saving = useRef(false)
-  const members = (users ?? []).filter(user => project?.memberIds.includes(user.id))
+  const members = (users ?? []).filter(user => project?.memberIds?.includes(user.id))
   async function save(fields: UpdateTaskInput) {
     if (saving.current) return false
     saving.current = true; setPending(true); setSaved(false)
