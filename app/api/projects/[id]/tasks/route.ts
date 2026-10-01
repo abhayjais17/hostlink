@@ -16,7 +16,7 @@ export async function GET(
     const tasks = await prisma.task.findMany({
       where: {
         projectId: id,
-        ...(search && { title: { contains: search, mode: 'insensitive' } }),
+        ...(search && { title: { contains: search } }),
         ...(assigneeIds.length && { assigneeId: { in: assigneeIds } }),
         ...(priorities.length && { priority: { in: priorities } }),
         ...(statuses.length && { status: { in: statuses } })
@@ -42,8 +42,13 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
 
-    const projectTasks = await prisma.task.findMany({ where: { projectId: id } })
-    const nextNumber = Math.max(...projectTasks.map(t => parseInt(t.key.split('-')[1])), 0) + 1
+    // Get globally unique key by counting all existing tasks
+    const allTasks = await prisma.task.findMany({ select: { key: true } })
+    const maxNum = Math.max(...allTasks.map(t => {
+      const num = parseInt(t.key.split('-')[1])
+      return isNaN(num) ? 0 : num
+    }), 0)
+    const nextNumber = maxNum + 1
 
     const now = new Date().toISOString()
     const task = await prisma.task.create({
