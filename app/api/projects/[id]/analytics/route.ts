@@ -4,20 +4,21 @@ import { endOfDay, subDays, startOfDay, format } from 'date-fns'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const tasks = await prisma.task.findMany({
-      where: { projectId: params.id }
+      where: { projectId: id }
     })
 
     const events = await prisma.taskEvent.findMany({
-      where: { projectId: params.id }
+      where: { projectId: id }
     })
 
     const users = await prisma.user.findMany()
     const members = await prisma.projectMember.findMany({
-      where: { projectId: params.id },
+      where: { projectId: id },
       include: { user: true }
     })
 
