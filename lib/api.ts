@@ -26,6 +26,15 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json()
 }
 
+// Normalize raw project data to ensure memberIds is always present
+function normalizeProject(raw: any): Project {
+  return {
+    ...raw,
+    description: raw.description ?? '',
+    memberIds: raw.memberIds ?? raw.members?.map((m: any) => m.userId ?? m.id) ?? []
+  }
+}
+
 export function setSidebarExpanded(expanded: boolean) {
   uiStore.getState().setSidebarExpanded(expanded)
 }
@@ -77,34 +86,37 @@ export async function setCurrentUser(id: string) {
 }
 
 export async function getProjects() {
-  return fetchJson<Project[]>('/api/projects')
+  const raw = await fetchJson<any[]>('/api/projects')
+  return raw.map(normalizeProject)
 }
 
 export async function getProjectSummaries(): Promise<ProjectSummary[]> {
-  return fetchJson('/api/projects?summary=true')
+  const raw = await fetchJson<any[]>('/api/projects?summary=true')
+  return raw.map(item => ({
+    ...item,
+    project: normalizeProject(item.project)
+  }))
 }
 
 export async function getProject(id: string) {
   const data = await fetchJson<any>(`/api/projects/${id}`)
-  // Transform the Prisma response to match our Project type
-  return {
-    ...data,
-    memberIds: data.members?.map((m: any) => m.userId) ?? []
-  } as Project
+  return normalizeProject(data)
 }
 
 export async function createProject(input: CreateProjectInput) {
-  return fetchJson<Project>('/api/projects', {
+  const data = await fetchJson<any>('/api/projects', {
     method: 'POST',
     body: JSON.stringify(input)
   })
+  return normalizeProject(data)
 }
 
 export async function updateProject(id: string, input: UpdateProjectInput) {
-  return fetchJson<Project>(`/api/projects/${id}`, {
+  const data = await fetchJson<any>(`/api/projects/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(input)
   })
+  return normalizeProject(data)
 }
 
 export async function deleteProject(id: string) {
@@ -145,40 +157,40 @@ export async function quickAddTask(projectId: string, title: string) {
   if (!project) throw new ApiError('Project not found')
 
   const currentUser = await getCurrentUser()
-  const userId = project.memberIds?.includes(currentUser.id) ? currentUser.id : users[0]?.id
+  const userId = project.memberIds.includes(currentUser.id) ? currentUser.id : users[0]?.id
 
   return createTask({
     projectId,
     title,
     status: 'backlog',
     priority: 'normal',
-    assigneeId: userId,
+    assigneeId: userId || '',
     dueDate: format(addDays(new Date(), 7), 'yyyy-MM-dd')
-  }, userId)
+  })
 }
 
 export async function getTask(id: string) {
   return fetchJson<Task>(`/api/tasks/${id}`)
 }
 
-export async function createTask(input: CreateTaskInput, userId = '') {
+export async function createTask(input: CreateTaskInput) {
   return fetchJson<Task>('/api/tasks', {
     method: 'POST',
-    body: JSON.stringify({ ...input, userId })
+    body: JSON.stringify(input)
   })
 }
 
-export async function updateTask(id: string, input: UpdateTaskInput, userId = '') {
+export async function updateTask(id: string, input: UpdateTaskInput) {
   return fetchJson<Task>(`/api/tasks/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ ...input, userId })
+    body: JSON.stringify(input)
   })
 }
 
-export async function moveTask(id: string, toStatus: Status, userId = '') {
+export async function moveTask(id: string, toStatus: Status) {
   return fetchJson<Task>(`/api/tasks/${id}/move`, {
     method: 'POST',
-    body: JSON.stringify({ toStatus, userId })
+    body: JSON.stringify({ toStatus })
   })
 }
 
@@ -199,14 +211,6 @@ export async function addComment(taskId: string, authorId: string, body: string)
 
 export async function deleteComment(id: string) {
   await fetchJson(`/api/comments/${id}`, { method: 'DELETE' })
-}
-
-export async function getTaskEvents(taskId: string) {
-  return fetchJson<TaskEvent[]>(`/api/tasks/${taskId}/events`)
-}
-
-export async function getProjectEvents(projectId: string) {
-  return fetchJson<TaskEvent[]>(`/api/projects/${projectId}/events`)
 }
 
 export async function getMyTasks() {
@@ -247,4 +251,12 @@ export async function getAnalytics(projectId: string) {
   const members = project.members?.map((m: any) => m.user) || []
 
   return computeAnalytics(tasks, events, members)
+}
+
+export async function getTaskEvents(taskId: string) {
+  return fetchJson<TaskEvent[]>(`/api/tasks/${taskId}/events`)
+}
+
+export async function getProjectEvents(projectId: string) {
+  return fetchJson<TaskEvent[]>(`/api/projects/${projectId}/events`)
 }
