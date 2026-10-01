@@ -1,7 +1,7 @@
-import { addDays, format, isValid, parseISO } from 'date-fns'
-import { domainStore, uiStore } from './store'
-import { allowedTransitions, computeAnalytics, groupPersonalTasks, isOverdue, transitionError } from './utils'
-import { PRIORITIES, STATUSES, type Comment, type CreateProjectInput, type CreateTaskInput, type DomainData, type Project, type ProjectSummary, type Status, type Task, type TaskEvent, type TaskFilters, type UpdateProjectInput, type UpdateTaskInput } from './types'
+import { addDays, format } from 'date-fns'
+import { uiStore } from './store'
+import { computeAnalytics, groupPersonalTasks } from './utils'
+import { type Comment, type CreateProjectInput, type CreateTaskInput, type Project, type ProjectSummary, type Status, type Task, type TaskEvent, type TaskFilters, type UpdateProjectInput, type UpdateTaskInput } from './types'
 
 export class ApiError extends Error {
   readonly error: string
@@ -85,7 +85,12 @@ export async function getProjectSummaries(): Promise<ProjectSummary[]> {
 }
 
 export async function getProject(id: string) {
-  return fetchJson(`/api/projects/${id}`)
+  const data = await fetchJson<any>(`/api/projects/${id}`)
+  // Transform the Prisma response to match our Project type
+  return {
+    ...data,
+    memberIds: data.members?.map((m: any) => m.userId) ?? []
+  } as Project
 }
 
 export async function createProject(input: CreateProjectInput) {
@@ -236,7 +241,7 @@ export async function getWorkspaceAnalytics() {
 }
 
 export async function getAnalytics(projectId: string) {
-  const project = await getProject(projectId)
+  const project = await getProject(projectId) as any
   const tasks = await getTasks(projectId)
   const events = await getProjectEvents(projectId)
   const members = project.members?.map((m: any) => m.user) || []
