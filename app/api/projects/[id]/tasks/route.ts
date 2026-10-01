@@ -3,9 +3,10 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const searchParams = request.nextUrl.searchParams
     const search = searchParams.get('q')
     const assigneeIds = searchParams.getAll('assignee')
@@ -14,7 +15,7 @@ export async function GET(
 
     const tasks = await prisma.task.findMany({
       where: {
-        projectId: params.id,
+        projectId: id,
         ...(search && { title: { contains: search, mode: 'insensitive' } }),
         ...(assigneeIds.length && { assigneeId: { in: assigneeIds } }),
         ...(priorities.length && { priority: { in: priorities } }),
@@ -30,9 +31,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { title, description, assigneeId, dueDate, priority, status } = body
 
@@ -40,7 +42,7 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
 
-    const projectTasks = await prisma.task.findMany({ where: { projectId: params.id } })
+    const projectTasks = await prisma.task.findMany({ where: { projectId: id } })
     const nextNumber = Math.max(...projectTasks.map(t => parseInt(t.key.split('-')[1])), 0) + 1
 
     const now = new Date().toISOString()
@@ -48,7 +50,7 @@ export async function POST(
       data: {
         id: crypto.randomUUID(),
         key: `HL-${nextNumber}`,
-        projectId: params.id,
+        projectId: id,
         title,
         description: description || '',
         assigneeId,
@@ -66,7 +68,7 @@ export async function POST(
       data: {
         id: crypto.randomUUID(),
         taskId: task.id,
-        projectId: params.id,
+        projectId: id,
         userId: assigneeId,
         fromStatus: null,
         toStatus: status || 'backlog',
