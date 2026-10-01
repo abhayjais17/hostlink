@@ -35,7 +35,20 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
         {active && <span className="absolute inset-y-2 -left-2 w-0.5 rounded-r bg-brand-500" />}<Icon className="size-4 shrink-0" aria-hidden="true" /><span className="rail-label whitespace-nowrap text-[13px]">{label}</span>
       </TooltipTrigger><TooltipContent side="right">{label}</TooltipContent></Tooltip>
     })}</nav>
-    <div className="rail-expanded mt-8 flex-col gap-2 px-4"><p className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em] text-sidebar-foreground/50">Your projects</p>{projects?.map(project => <Link key={project.id} href={`/projects/${project.id}`} onClick={onNavigate} className="flex items-center gap-2.5 rounded py-1 text-xs text-sidebar-foreground/75 outline-none hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"><span className={cn('size-1.5 shrink-0 rounded-sm', project.color === 'teal' ? 'bg-brand-500' : projectColors.find(option => option.value === project.color)?.className ?? 'bg-status-review')} />{project.name}</Link>)}</div>
+    <div className="rail-expanded mt-8 flex-col gap-2 px-4">
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em] text-sidebar-foreground/50">Your projects</p>
+      {projects?.map(project => (
+        <Link
+          key={project.id}
+          href={`/projects/${project.id}`}
+          onClick={onNavigate}
+          className="flex items-center gap-2.5 rounded py-1 text-xs text-sidebar-foreground/75 outline-none hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+        >
+          <span className={cn('size-1.5 shrink-0 rounded-sm', project.color === 'teal' ? 'bg-brand-500' : projectColors.find(option => option.value === project.color)?.className ?? 'bg-status-review')} />
+          {project.name}
+        </Link>
+      ))}
+    </div>
     <div className="mt-auto flex flex-col gap-2 px-2 pb-4 pt-8">
       {!mobile && <Tooltip><TooltipTrigger render={<button className={cn(railControl, 'hidden xl:flex')} onClick={() => setSidebarExpanded(!expanded)} aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'} aria-expanded={expanded} />}>
         {expanded ? <ChevronLeft className="size-4 shrink-0" /> : <ChevronRight className="size-4 shrink-0" />}<span className="rail-label text-xs">Collapse sidebar</span>
