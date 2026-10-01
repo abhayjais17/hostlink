@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, ChartNoAxesCombined, Layers, LockKeyhole, MessageSquareText, MoveUpRight } from 'lucide-react'
+import * as api from '@/lib/api'
 import { Brand } from '@/components/layout/brand'
 import { Button } from '@/components/ui/button'
 import { LoadingButton } from '@/components/ui/hostlink'
@@ -21,11 +22,42 @@ const features = [
 export function LoginPage() {
   const router = useRouter()
   const reduced = useReducedMotion()
+  const [isLogin, setIsLogin] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [pending, setPending] = useState(false)
-  function enterDemo() {
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    setError('')
+    setSuccess('')
+    setPending(true)
+
+    try {
+      if (isLogin) {
+        const user = await api.login(email, password)
+        setSuccess(`Welcome back, ${user.name}!`)
+        router.push('/projects')
+      } else {
+        const user = await api.signup(name, email, password)
+        setSuccess(`Account created! Welcome to Hostlink, ${user.name}!`)
+        router.push('/projects')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  function handleDemoLogin() {
     setPending(true)
     router.push('/projects')
   }
+
   return <main className="grid min-h-svh bg-surface lg:grid-cols-[1.04fr_1fr]">
     <section className="login-brand-panel flex flex-col px-7 py-8 text-sidebar-foreground sm:px-12 lg:min-h-svh lg:px-16 lg:py-12 xl:px-20">
       <Link href="/" aria-label="Hostlink home" className="w-fit"><Brand inverse /></Link>
@@ -43,17 +75,87 @@ export function LoginPage() {
     <section className="relative flex flex-col items-center justify-center px-6 py-14 sm:px-12 lg:py-24">
       <div className="mb-10 flex items-center gap-2 text-xs text-muted-foreground lg:absolute lg:top-12 lg:right-12 lg:mb-0"><span className="size-1.5 rounded-full bg-primary" />Your team&apos;s next chapter starts here</div>
       <motion.div initial={{ opacity: 0, y: reduced ? 0 : 4 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[360px]">
-        <div className="mb-8"><span className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary"><span className="h-px w-6 bg-primary" />Welcome to Hostlink</span><h2 className="text-3xl font-semibold tracking-tight">Good work starts here.</h2><p className="mt-3 text-sm text-muted-foreground">Sign in to your team&apos;s workspace.</p></div>
-        <form onSubmit={event => { event.preventDefault(); enterDemo() }} aria-label="Demo sign in" className="flex flex-col gap-6">
-          <FieldGroup>
-            <Field><FieldLabel htmlFor="email">Work email</FieldLabel><Input id="email" type="email" placeholder="you@company.com" autoComplete="off" required className="h-11" /></Field>
-            <Field><FieldLabel htmlFor="password">Password</FieldLabel><Input id="password" type="password" placeholder="Enter a demo password" autoComplete="off" required className="h-11" /></Field>
-          </FieldGroup>
-          <LoadingButton type="submit" pending={pending} className="h-11 w-full">Sign in<ArrowRight data-icon="inline-end" /></LoadingButton>
+        <div className="mb-8"><span className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary"><span className="h-px w-6 bg-primary" />Welcome to Hostlink</span>
+          <h2 className="text-3xl font-semibold tracking-tight">{isLogin ? 'Welcome back.' : 'Create an account.'}</h2>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {isLogin ? 'Sign in to your workspace.' : 'Bring your projects, people, and progress together.'}
+          </p>
+          {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+          {success && <p className="mt-2 text-xs text-green-600">{success}</p>}
+        </div>
+
+        <form onSubmit={handleSubmit} aria-label={isLogin ? 'Sign in' : 'Sign up'} className="flex flex-col gap-6">
+          {!isLogin && (
+            <Field>
+              <FieldLabel htmlFor="name">Full name</FieldLabel>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Asha Verma"
+                autoComplete="name"
+                required={!isLogin}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={pending}
+                className="h-11"
+              />
+            </Field>
+          )}
+
+          <Field>
+            <FieldLabel htmlFor="email">Work email</FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@company.com"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={pending}
+              className="h-11"
+            />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Input
+              id="password"
+              type="password"
+              placeholder={isLogin ? "Enter your password" : "At least 8 characters"}
+              autoComplete={isLogin ? "current-password" : "new-password"}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={pending}
+              className="h-11"
+            />
+          </Field>
+
+          <LoadingButton type="submit" pending={pending} className="h-11 w-full">
+            {isLogin ? 'Sign in' : 'Create account'}
+            <ArrowRight data-icon="inline-end" />
+          </LoadingButton>
         </form>
-        <div className="my-6 flex items-center gap-4"><Separator className="flex-1" /><span className="shrink-0 text-xs text-muted-foreground">or take a look around</span><Separator className="flex-1" /></div>
-        <Button variant="secondary" className="h-11 w-full" onClick={enterDemo} disabled={pending}>Continue as demo user<ArrowRight data-icon="inline-end" /></Button>
-        <p className="mt-5 flex items-start justify-center gap-2 text-center text-xs leading-5 text-muted-foreground"><LockKeyhole className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /><span>UI demo only. Use made-up credentials.<br />Nothing is authenticated, sent, or saved.</span></p>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setIsLogin(!isLogin)
+              setError('')
+              setSuccess('')
+            }}
+            className="text-xs text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            disabled={pending}
+          >
+            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+          </button>
+        </div>
+
+        <div className="my-6 flex items-center gap-4"><Separator className="flex-1" /><span className="shrink-0 text-xs text-muted-foreground">or explore the demo</span><Separator className="flex-1" /></div>
+        <Button variant="secondary" className="h-11 w-full" onClick={handleDemoLogin} disabled={pending}>Continue as demo user<ArrowRight data-icon="inline-end" /></Button>
+        <p className="mt-5 flex items-start justify-center gap-2 text-center text-xs leading-5 text-muted-foreground"><LockKeyhole className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /><span>{isLogin ? 'Your data is encrypted and secure.' : 'Sign up for a real account to create your own projects and tasks.'}</span></p>
       </motion.div>
       <p className="mt-12 text-xs text-muted-foreground lg:absolute lg:bottom-12">Built for small teams with big things to do.</p>
     </section>
