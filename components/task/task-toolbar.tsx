@@ -26,7 +26,7 @@ export function TaskToolbar({ projectId, view, onAdd }: { projectId: string; vie
   const reduced = useReducedMotion()
   const [mobileOpen, setMobileOpen] = useState(false)
   const groups = [
-    { key: 'assigneeIds' as const, label: 'Assignee', options: (users ?? []).filter(user => project?.memberIds.includes(user.id)).map(user => ({ value: user.id, label: user.name, user })) },
+    { key: 'assigneeIds' as const, label: 'Assignee', options: (users ?? []).filter(user => project?.memberIds?.includes(user.id)).map(user => ({ value: user.id, label: user.name, user })) },
     { key: 'priorities' as const, label: 'Priority', options: PRIORITIES.map(value => ({ value, label: value[0].toUpperCase() + value.slice(1), user: undefined })) },
     { key: 'statuses' as const, label: 'Status', options: STATUSES.map(value => ({ value, label: statusLabels[value], user: undefined })) },
   ]
