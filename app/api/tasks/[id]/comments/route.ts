@@ -3,11 +3,12 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const comments = await prisma.comment.findMany({
-      where: { taskId: params.id },
+      where: { taskId: id },
       include: { author: true },
       orderBy: { createdAt: 'asc' }
     })
@@ -20,9 +21,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { authorId, body: commentBody } = body
 
@@ -33,7 +35,7 @@ export async function POST(
     const comment = await prisma.comment.create({
       data: {
         id: crypto.randomUUID(),
-        taskId: params.id,
+        taskId: id,
         authorId,
         body: commentBody,
         createdAt: new Date()
