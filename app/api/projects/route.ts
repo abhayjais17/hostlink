@@ -1,17 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getCurrentUserFromCookies } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
     const summary = request.nextUrl.searchParams.get('summary')
 
-    // Fetch all data in one pass
+    // Get current authenticated user
+    const userId = await getCurrentUserFromCookies()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Fetch user's project memberships
+    const memberships = await prisma.projectMember.findMany({
+      where: { userId },
+      select: { projectId: true }
+    })
+    const projectIds = memberships.map(m => m.projectId)
+
+    // Fetch only the projects the user is a member of
     const projects = await prisma.project.findMany({
+      where: { id: { in: projectIds } },
       include: { members: { include: { user: true } } }
     })
 
     const allTasks = await prisma.task.findMany()
-
     const users = await prisma.user.findMany()
 
     // Normalize projects with memberIds
@@ -56,21 +70,30 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, description, color, memberIds } = body
-
-    if (!name || !memberIds?.length) {
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+    // Get current authenticated user
+    const userId = await getCurrentUserFromCookies()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const body = await request.json()
+    const { name, description, color, memberIds = [] } = body
+
+    if (!name) {
+      return NextResponse.json({ error: 'Project name is required' }, { status: 400 })
+    }
+
+    // Always include the creator as a member
+    const allMemberIds = [...new Set([userId, ...memberIds])]
 
     const project = await prisma.project.create({
       data: {
         id: crypto.randomUUID(),
         name,
         description: description || '',
-        color,
+        color: color || 'teal',
         members: {
-          create: memberIds.map((userId: string) => ({ userId }))
+          create: allMemberIds.map((mid: string) => ({ userId: mid }))
         }
       },
       include: { members: { include: { user: true } } }
