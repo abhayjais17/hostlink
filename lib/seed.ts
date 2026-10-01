@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { addDays, format, startOfDay, subHours, subMinutes } from 'date-fns'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -8,34 +9,26 @@ async function main() {
   const day = (offset: number) => addDays(startOfDay(now), offset)
   const stamp = (offset: number) => day(offset).toISOString()
 
-  // Create users
-  const users = await Promise.all([
-    prisma.user.create({ data: { id: 'u1', name: 'Asha Verma', email: 'asha@hostlink.demo', role: 'Team Lead', color: 'teal' } }),
-    prisma.user.create({ data: { id: 'u2', name: 'Rohan Mehta', email: 'rohan@hostlink.demo', role: 'Developer', color: 'indigo' } }),
-    prisma.user.create({ data: { id: 'u3', name: 'Meera Nair', email: 'meera@hostlink.demo', role: 'Designer', color: 'amber' } }),
-  ])
+  // Hash demo password for all seeded users
+  const demoPassword = 'hostlink123'
+  const hashedPassword = await bcrypt.hash(demoPassword, 10)
 
-  // Create projects
-  const projects = await Promise.all([
-    prisma.project.create({
-      data: {
-        id: 'website-revamp',
-        name: 'Website Revamp',
-        description: 'Redesign and rebuild the company website',
-        color: 'teal',
-        createdAt: stamp(-12),
-        members: { create: users.map(u => ({ userId: u.id })) },
-      },
+  // Create or update users with hashed passwords
+  const users = await Promise.all([
+    prisma.user.upsert({
+      where: { id: 'u1' },
+      update: { password: hashedPassword },
+      create: { id: 'u1', name: 'Asha Verma', email: 'asha@hostlink.demo', password: hashedPassword, role: 'Team Lead', color: 'teal' }
     }),
-    prisma.project.create({
-      data: {
-        id: 'mobile-app-v2',
-        name: 'Mobile App v2',
-        description: 'A faster, more intuitive mobile experience',
-        color: 'indigo',
-        createdAt: stamp(-10),
-        members: { create: users.map(u => ({ userId: u.id })) },
-      },
+    prisma.user.upsert({
+      where: { id: 'u2' },
+      update: { password: hashedPassword },
+      create: { id: 'u2', name: 'Rohan Mehta', email: 'rohan@hostlink.demo', password: hashedPassword, role: 'Developer', color: 'indigo' }
+    }),
+    prisma.user.upsert({
+      where: { id: 'u3' },
+      update: { password: hashedPassword },
+      create: { id: 'u3', name: 'Meera Nair', email: 'meera@hostlink.demo', password: hashedPassword, role: 'Designer', color: 'amber' }
     }),
   ])
 
@@ -54,6 +47,38 @@ async function main() {
     { title: 'Define offline requirements', assigneeId: 'u1', priority: 'normal', due: 6, moves: [], description: 'Identify the core workflows that should remain available without a connection.' },
     { title: 'Set up app development environment', assigneeId: 'u2', priority: 'normal', due: 8, moves: [], description: 'Prepare the mobile build pipeline and development environment.' },
   ]
+
+  // Create projects only if they don't exist
+  const existingProjects = await prisma.project.findMany({ select: { id: true } })
+  const existingProjectIds = new Set(existingProjects.map(p => p.id))
+
+  if (!existingProjectIds.has('website-revamp')) {
+    await prisma.project.create({
+      data: {
+        id: 'website-revamp',
+        name: 'Website Revamp',
+        description: 'Redesign and rebuild the company website',
+        color: 'teal',
+        createdAt: stamp(-12),
+        members: { create: users.map(u => ({ userId: u.id })) },
+      },
+    })
+  }
+
+  if (!existingProjectIds.has('mobile-app-v2')) {
+    await prisma.project.create({
+      data: {
+        id: 'mobile-app-v2',
+        name: 'Mobile App v2',
+        description: 'A faster, more intuitive mobile experience',
+        color: 'indigo',
+        createdAt: stamp(-10),
+        members: { create: users.map(u => ({ userId: u.id })) },
+      },
+    })
+  }
+
+  const projects = await prisma.project.findMany()
 
   // Create tasks FIRST, then events
   for (let i = 0; i < definitions.length; i++) {
