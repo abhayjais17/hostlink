@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-
-const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  backlog: ['in_progress'],
-  in_progress: ['backlog', 'review'],
-  review: ['in_progress', 'done'],
-  done: ['review']
-}
+import { getCurrentUserFromCookies } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
@@ -38,6 +32,12 @@ export async function PATCH(
     const body = await request.json()
     const { title, description, assigneeId, dueDate, priority, status } = body
 
+    // Get current authenticated user
+    const userId = await getCurrentUserFromCookies()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const task = await prisma.task.update({
       where: { id },
       data: {
@@ -59,7 +59,7 @@ export async function PATCH(
           id: crypto.randomUUID(),
           taskId: task.id,
           projectId: task.projectId,
-          userId: assigneeId || oldTask?.assigneeId || '',
+          userId: assigneeId || oldTask?.assigneeId || userId,
           fromStatus: oldTask?.status,
           toStatus: status,
           createdAt: new Date()
