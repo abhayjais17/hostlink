@@ -1,19 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const summary = request.nextUrl.searchParams.get('summary')
+
+    // Fetch all data in one pass
     const projects = await prisma.project.findMany({
       include: { members: { include: { user: true } } }
     })
 
-    const projectsWithStats = await Promise.all(
-      projects.map(async (project) => {
-        const tasks = await prisma.task.findMany({ where: { projectId: project.id } })
-        const doneTasks = tasks.filter(t => t.status === 'done').length
-        const overdueCount = tasks.filter(t => {
+    const allTasks = await prisma.task.findMany()
+
+    const users = await prisma.user.findMany()
+
+    // Normalize projects with memberIds
+    const normalizedProjects = projects.map(project => ({
+      ...project,
+      description: project.description || '',
+      memberIds: project.members.map(m => m.userId)
+    }))
+
+    // If summary mode, compute analytics
+    if (summary === 'true') {
+      const summaries = normalizedProjects.map(project => {
+        const projectTasks = allTasks.filter(t => t.projectId === project.id)
+        const doneTasks = projectTasks.filter(t => t.status === 'done').length
+        const today = new Date()
+        const overdueCount = projectTasks.filter(t => {
           if (t.status === 'done') return false
-          const today = new Date()
           const dueDate = new Date(t.dueDate)
           return dueDate < today
         }).length
@@ -21,17 +36,20 @@ export async function GET() {
         return {
           project,
           members: project.members.map(m => m.user),
-          totalTasks: tasks.length,
+          totalTasks: projectTasks.length,
           doneTasks,
           overdueCount,
-          completionPct: tasks.length ? Math.round((doneTasks / tasks.length) * 100) : 0,
+          completionPct: projectTasks.length ? Math.round((doneTasks / projectTasks.length) * 100) : 0,
           lastUpdated: project.updatedAt || project.createdAt
         }
       })
-    )
+      return NextResponse.json(summaries)
+    }
 
-    return NextResponse.json(projectsWithStats)
+    // Non-summary mode: return normalized projects
+    return NextResponse.json(normalizedProjects)
   } catch (error) {
+    console.error(error)
     return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 })
   }
 }
@@ -54,11 +72,17 @@ export async function POST(request: NextRequest) {
         members: {
           create: memberIds.map((userId: string) => ({ userId }))
         }
-      }
+      },
+      include: { members: { include: { user: true } } }
     })
 
-    return NextResponse.json(project, { status: 201 })
+    return NextResponse.json({
+      ...project,
+      description: project.description || '',
+      memberIds: project.members.map(m => m.userId)
+    }, { status: 201 })
   } catch (error) {
+    console.error(error)
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 })
   }
 }
