@@ -10,11 +10,12 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const task = await prisma.task.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { comments: true, events: true }
     })
 
@@ -30,14 +31,15 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { title, description, assigneeId, dueDate, priority, status } = body
 
     const task = await prisma.task.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title: title || undefined,
         description: description || undefined,
@@ -51,7 +53,7 @@ export async function PATCH(
     })
 
     if (status) {
-      const oldTask = await prisma.task.findUnique({ where: { id: params.id } })
+      const oldTask = await prisma.task.findUnique({ where: { id } })
       await prisma.taskEvent.create({
         data: {
           id: crypto.randomUUID(),
@@ -73,10 +75,11 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await prisma.task.delete({ where: { id: params.id } })
+    const { id } = await params
+    await prisma.task.delete({ where: { id } })
     return NextResponse.json({}, { status: 204 })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
