@@ -5,7 +5,7 @@ export type Priority = (typeof PRIORITIES)[number]
 
 export interface User { id: string; name: string; email: string; role: string; color: string }
 export interface Project {
-  id: string; name: string; description: string; color: string; createdAt: string; memberIds?: string[]; updatedAt?: string
+  id: string; name: string; description: string; color: string; createdAt: string; memberIds: string[]; updatedAt?: string
   members?: Array<{ userId: string; user: User }>
 }
 export interface ProjectSummary {
