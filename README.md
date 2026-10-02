@@ -448,3 +448,5 @@ All demo users are members of both projects and own various tasks.
 ---
 
 **Built for Hackathon PS 09** | © 2026 Hostlink | Demo preview — No persistent storage beyond the database
+
+<!-- Deployment trigger: commit to trigger Vercel redeploy -->
