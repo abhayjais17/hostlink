@@ -261,7 +261,7 @@ export async function deleteComment(id: string) {
 
 export async function getMyTasks() {
   const user = await getCurrentUser()
-  const tasks = await fetchJson<Task[]>(`/api/my-tasks?userId=${user.id}`)
+  const tasks = await fetchJson<Task[]>('/api/my-tasks')
   const projects = await getProjects()
 
   return {
