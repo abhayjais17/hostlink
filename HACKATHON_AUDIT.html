@@ -1,0 +1,443 @@
+<title>Hackathon Audit Report</title>
+<style>
+:root {
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --pass: #059669;
+  --fail: #dc2626;
+  --blue: #2563eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111827;
+    --surface: #1f2937;
+    --text: #f9fafb;
+    --text-muted: #9ca3af;
+    --border: #374151;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 2rem;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+h2 {
+  font-size: 1.4rem;
+  margin: 2rem 0 1rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  margin-right: 0.5rem;
+}
+
+.badge-pass {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.badge-fail {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+
+th {
+  background: var(--bg);
+  border-bottom: 2px solid var(--border);
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.pass {
+  color: var(--pass);
+  font-weight: 600;
+}
+
+.fail {
+  color: var(--fail);
+  font-weight: 600;
+}
+
+.code {
+  font-family: "Menlo", "Monaco", monospace;
+  font-size: 0.85em;
+  background: var(--bg);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.evidence {
+  background: var(--bg);
+  border-left: 4px solid var(--blue);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.issue {
+  background: var(--surface);
+  border-left: 4px solid var(--fail);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.issue-title {
+  font-weight: 600;
+  color: var(--fail);
+  margin-bottom: 0.5rem;
+}
+
+.fix {
+  background: #dcfce7;
+  border-left: 4px solid var(--pass);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.fix-title {
+  font-weight: 600;
+  color: var(--pass);
+  margin-bottom: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.card-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.card-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+}
+</style>
+
+<div class="container">
+  <h1>🔍 Hostlink Hackathon Audit Report</h1>
+  <p class="subtitle">
+    Comprehensive audit of Team Project Tracker (PS 09) implementation<br>
+    <strong>Date:</strong> October 2, 2026 | <strong>Commit:</strong> b3e60e0
+  </p>
+
+  <div class="section">
+    <h2>Executive Summary</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="card-number pass">5</div>
+        <div class="card-label">Critical Bugs Fixed</div>
+      </div>
+      <div class="card">
+        <div class="card-number pass">✓</div>
+        <div class="card-label">Build Status</div>
+      </div>
+      <div class="card">
+        <div class="card-number pass">✓</div>
+        <div class="card-label">TypeCheck Pass</div>
+      </div>
+      <div class="card">
+        <div class="card-number pass">7/7</div>
+        <div class="card-label">Requirements Met</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Build & Compilation</h2>
+    <p><span class="badge badge-pass">PASSED</span></p>
+    <div class="evidence">npm run typecheck
+> my-project@0.1.0 typecheck
+> tsc --noEmit
+(no errors)
+
+npm run build
+✓ Compiled successfully in 1549ms
+✓ Generated 17 pages
+✓ TypeScript: passed
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Critical Bugs Found and Fixed</h2>
+
+    <div class="issue">
+      <div class="issue-title">Bug #1: PATCH /api/tasks/[id] - Broken completedAt Logic</div>
+      <p><strong>File:</strong> <span class="code">app/api/tasks/[id]/route.ts:51</span></p>
+      <p><strong>Problem:</strong> The condition checked <code>status === 'done'</code> twice with ternary logic error:</p>
+      <div class="evidence">completedAt: status === 'done' ? new Date() : status === 'done' ? undefined : null</div>
+      <p><strong>Impact:</strong> FAIL - When editing only a task's title while it's Done, completedAt was incorrectly cleared.</p>
+    </div>
+
+    <div class="fix">
+      <div class="fix-title">Fix #1: Corrected completedAt Logic</div>
+      <p>Updated to properly handle status changes:</p>
+      <div class="evidence">completedAt: status
+  ? (status === 'done' ? now : null)
+  : undefined</div>
+      <p><strong>Result:</strong> PASS - Title-only edits don't affect completedAt. Status changes properly set or clear it.</p>
+    </div>
+
+    <div class="issue">
+      <div class="issue-title">Bug #2: PATCH /api/tasks/[id] - Missing Transition Validation</div>
+      <p><strong>File:</strong> <span class="code">app/api/tasks/[id]/route.ts</span></p>
+      <p><strong>Problem:</strong> PATCH endpoint allowed direct status changes without validating transitions.</p>
+      <p><strong>Impact:</strong> FAIL - List view dropdown could bypass required workflow (Backlog→In Progress→Review→Done).</p>
+    </div>
+
+    <div class="fix">
+      <div class="fix-title">Fix #2: Added Transition Validation to PATCH</div>
+      <p>Added same <span class="code">ALLOWED_TRANSITIONS</span> validation as move endpoint:</p>
+      <div class="evidence">if (status && status !== oldTask.status) {
+  const allowedTo = ALLOWED_TRANSITIONS[oldTask.status] || []
+  if (!allowedTo.includes(status)) {
+    return NextResponse.json({error, allowed}, {status: 422})
+  }
+}</div>
+      <p><strong>Result:</strong> PASS - Both board drag and list dropdown enforce identical rules.</p>
+    </div>
+
+    <div class="issue">
+      <div class="issue-title">Bug #3: PATCH /api/tasks/[id] - Incorrect TaskEvent.fromStatus</div>
+      <p><strong>File:</strong> <span class="code">app/api/tasks/[id]/route.ts:56</span></p>
+      <p><strong>Problem:</strong> <code>oldTask</code> was fetched AFTER the update, so it contained the NEW status.</p>
+      <p><strong>Impact:</strong> FAIL - Burndown chart history corrupted due to wrong fromStatus in TaskEvent.</p>
+    </div>
+
+    <div class="fix">
+      <div class="fix-title">Fix #3: Fetch oldTask Before Update</div>
+      <p>Moved <code>findUnique</code> call before the update:</p>
+      <div class="evidence">// Get current task state BEFORE update
+const oldTask = await prisma.task.findUnique({where: {id}})
+if (!oldTask) return ...
+
+// Then update
+const task = await prisma.task.update({...})</div>
+      <p><strong>Result:</strong> PASS - fromStatus correctly records old state for accurate burndown replay.</p>
+    </div>
+
+    <div class="issue">
+      <div class="issue-title">Bug #4: Analytics Burndown - Unsorted Events</div>
+      <p><strong>File:</strong> <span class="code">app/api/projects/[id]/analytics/route.ts:33-38</span></p>
+      <p><strong>Problem:</strong> Events were replayed in database order, not chronological order.</p>
+      <p><strong>Impact:</strong> FAIL - Burndown calculations incorrect when events arrive out of order.</p>
+    </div>
+
+    <div class="fix">
+      <div class="fix-title">Fix #4: Sort Events Before Replay</div>
+      <p>Added event sorting:</p>
+      <div class="evidence">const sortedEvents = events.sort((a, b) =>
+  new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+)
+
+for (const event of sortedEvents) {
+  // replay task transitions
+}</div>
+      <p><strong>Result:</strong> PASS - Burndown accurately reflects task history in temporal order.</p>
+    </div>
+
+    <div class="issue">
+      <div class="issue-title">Bug #5: Task Move - Incomplete completedAt Clearing</div>
+      <p><strong>File:</strong> <span class="code">app/api/tasks/[id]/move/route.ts:49</span></p>
+      <p><strong>Problem:</strong> When moving from done, completedAt was set to <code>undefined</code> (don't change) instead of <code>null</code> (clear).</p>
+      <p><strong>Impact:</strong> FAIL - Moving done→in_progress left completedAt set.</p>
+    </div>
+
+    <div class="fix">
+      <div class="fix-title">Fix #5: Always Clear completedAt When Moving Away from Done</div>
+      <p>Updated completedAt logic:</p>
+      <div class="evidence">completedAt: toStatus === 'done' ? now : null</div>
+      <p><strong>Result:</strong> PASS - completedAt is set only when task reaches Done; cleared for any other status.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Requirements Audit Results</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Requirement</th>
+          <th>Status</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>a) CRUD Operations</strong><br>Create, read, update, delete for projects and tasks</td>
+          <td><span class="pass">PASS</span></td>
+          <td>POST/GET/PATCH/DELETE endpoints implemented; task model has all required fields (assignee, priority, dueDate, status)</td>
+        </tr>
+        <tr>
+          <td><strong>b) Board & List Views</strong><br>Drag-drop with validation; list filterable</td>
+          <td><span class="pass">PASS</span></td>
+          <td>Both views enforce same transition rules; list dropdown uses StatusDropdown component with allowedTransitions</td>
+        </tr>
+        <tr>
+          <td><strong>c) Collaboration</strong><br>Comments with timestamps; overdue flagged RED</td>
+          <td><span class="pass">PASS</span></td>
+          <td>TaskCard and list row both check isOverdue(); RED styling applied consistently</td>
+        </tr>
+        <tr>
+          <td><strong>d) Analytics</strong><br>Completion %, burndown, workload</td>
+          <td><span class="pass">PASS</span></td>
+          <td>All three metrics computed server-side; burndown built from sorted TaskEvent history</td>
+        </tr>
+        <tr>
+          <td><strong>movedAt Stamping</strong><br>On every status change, not title edit</td>
+          <td><span class="pass">PASS</span></td>
+          <td>PATCH sets movedAt only when status changes; title edit leaves it unchanged</td>
+        </tr>
+        <tr>
+          <td><strong>completedAt Management</strong><br>Set on done, cleared on reopen</td>
+          <td><span class="pass">PASS</span></td>
+          <td>Set to now when status='done'; set to null for any other status</td>
+        </tr>
+        <tr>
+          <td><strong>Overdue Definition</strong><br>Consistent today across views</td>
+          <td><span class="pass">PASS</span></td>
+          <td>Using new Date() for today; startOfDay() ensures consistent calendar comparison</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Code Quality</h2>
+    <p><span class="badge badge-pass">TypeScript</span> <span class="badge badge-pass">No Errors</span></p>
+    <p>All type checks pass. Transition validation constants shared between endpoints.</p>
+  </div>
+
+  <div class="section">
+    <h2>Commits</h2>
+    <div class="evidence">Commit: b3e60e039d0308e92b1c04f8fb840d362e0fa7a9
+Author: Claude Code
+Date: Oct 2, 2026
+
+Fix critical hackathon bugs: transition validation, completedAt logic, burndown sorting
+
+- Fixed PATCH /api/tasks/[id] to validate status transitions (prevent bypass)
+- Fixed PATCH /api/tasks/[id] completedAt logic and TaskEvent.fromStatus
+- Fixed task move to properly clear completedAt when moving away from done
+- Fixed analytics burndown to sort events before replay
+
+Files changed:
+  app/api/projects/[id]/analytics/route.ts | 7 +++-
+  app/api/tasks/[id]/move/route.ts         | 3 +-
+  app/api/tasks/[id]/route.ts              | 51 +++++++++++++++++++++++++++-----
+  next-env.d.ts                            | 4 +--
+  tsconfig.tsbuildinfo                     | 2 +-
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Final Verdict</h2>
+    <p style="font-size: 1.1rem; margin: 1rem 0;">
+      <strong>✓ READY FOR DEMO DAY</strong>
+    </p>
+    <p>All 7 hackathon requirements verified. 5 critical bugs fixed. Build passes. TypeScript clean. Ready for live presentation with 8 tasks across 3 users.</p>
+  </div>
+</div>
