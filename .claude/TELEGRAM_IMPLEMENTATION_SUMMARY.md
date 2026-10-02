@@ -110,7 +110,7 @@ matcher: [
 Add these to Vercel after deployment:
 
 ```bash
-TELEGRAM_BOT_TOKEN=8950416616:AAGi8WzUMqw80KNgkRL38NNgywOWX1_S3xE
+TELEGRAM_BOT_TOKEN=<YOUR_BOT_TOKEN_FROM_BOTFATHER>
 TELEGRAM_WEBHOOK_SECRET=<generate with command below>
 ```
 
@@ -124,7 +124,7 @@ openssl rand -base64 32
 After deploying to Vercel and adding environment variables, run this command once:
 
 ```bash
-curl -X POST "https://api.telegram.org/bot8950416616:AAGi8WzUMqw80KNgkRL38NNgywOWX1_S3xE/setWebhook" \
+curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN_FROM_BOTFATHER>/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://hostlink-ark.vercel.app/api/telegram/webhook",
