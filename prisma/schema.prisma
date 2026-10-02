@@ -43,6 +43,8 @@ model ProjectMember {
   id        String @id @default(uuid())
   projectId String
   userId    String
+  role      String @default("member")
+  designation String?
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
