@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project name is required' }, { status: 400 })
     }
 
-    // Always include the creator as a member
+    // Always include the creator as a member with role "leader"
     const allMemberIds = [...new Set([userId, ...memberIds])]
 
     const project = await prisma.project.create({
@@ -93,7 +93,10 @@ export async function POST(request: NextRequest) {
         description: description || '',
         color: color || 'teal',
         members: {
-          create: allMemberIds.map((mid: string) => ({ userId: mid }))
+          create: allMemberIds.map((mid: string) => ({
+            userId: mid,
+            role: mid === userId ? 'leader' : 'member'
+          }))
         }
       },
       include: { members: { include: { user: true } } }
