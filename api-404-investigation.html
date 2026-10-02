@@ -1,0 +1,349 @@
+<title>API 404 Investigation Report</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #fafafa;
+    --card: white;
+    --text: #222;
+    --border: #e5e5e5;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111;
+      --card: #222;
+      --text: #eee;
+      --border: #444;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111;
+    --card: #222;
+    --text: #eee;
+    --border: #444;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 32px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  h2 {
+    font-size: 24px;
+    margin: 32px 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  h3 {
+    font-size: 18px;
+    margin: 24px 0 12px 0;
+    color: var(--text);
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-left: 12px;
+  }
+
+  .status-success { background: var(--success); color: white; }
+  .status-error { background: var(--error); color: white; }
+  .status-warning { background: var(--warning); color: black; }
+
+  .test-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .route-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .curl-code {
+    font-family: 'Monaco', 'Consolas', monospace;
+    background: #000;
+    color: #00ff00;
+    padding: 16px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 13px;
+    margin: 12px 0;
+    white-space: pre-wrap;
+  }
+
+  .route-path {
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .result {
+    padding: 12px;
+    border-left: 4px solid var(--info);
+    background: rgba(59, 130, 246, 0.1);
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .error {
+    border-left-color: var(--error);
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .success {
+    border-left-color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+  }
+
+  .issue {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid var(--error);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 24px 0;
+  }
+
+  .solution {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid var(--success);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 24px 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .summary {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid var(--info);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 24px 0;
+  }
+
+  .timestamp {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 32px;
+  }
+
+  .button {
+    background: var(--info);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .button:hover {
+    opacity: 0.9;
+  }
+</style>
+<h1>API 404 Investigation Report</h1>
+<div class="timestamp">Investigation completed: October 2, 2026 · Project ID: 4e21d184-6164-4012-a79e-928430a9300b</div>
+
+<div class="summary">
+  <h3>🎯 INVESTIGATION FINDINGS</h3>
+  <p><strong>Issue:</strong> Browser reports 404 on multiple API routes despite curl tests showing 200</p>
+  <p><strong>Root Cause Found:</strong> Frontend error handling masks real issue</p>
+  <p><strong>Status:</strong> Issue identified and fix applied (not committed)</p>
+</div>
+
+<div class="grid">
+  <div class="test-section">
+    <h2>🔍 Test 1: Analytics Endpoint</h2>
+    <div class="route-card">
+      <div class="route-path">GET /api/projects/4e21d184-6164-4012-a79e-928430a9300b/analytics</div>
+      <span class="status-badge status-success">200 OK</span>
+      <div class="curl-code">curl -v "https://hostlink-ark.vercel.app/api/projects/4e21d184-6164-4012-a79e-928430a9300b/analytics"</div>
+      <div class="result success">
+        <strong>Result:</strong> HTTP 200 with valid JSON data
+        <br><strong>X-Matched-Path:</strong> /api/projects/[id]/analytics
+        <br><strong>Conclusion:</strong> Route exists and works correctly
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🔍 Test 2: Events Endpoint (BROKEN)</h2>
+    <div class="route-card">
+      <div class="route-path">GET /api/projects/4e21d184-6164-4012-a79e-928430a9300b/events</div>
+      <span class="status-badge status-error">404 NOT FOUND</span>
+      <div class="curl-code">curl -v "https://hostlink-ark.vercel.app/api/projects/4e21d184-6164-4012-a79e-928430a9300b/events"</div>
+      <div class="result error">
+        <strong>Result:</strong> HTTP 404 Not Found
+        <br><strong>Root Cause:</strong> This route DOES NOT EXIST
+        <br>File: <code>app/api/projects/[id]/events/route.ts</code> is missing
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <h2>🚨 ROOT CAUSE IDENTIFIED</h2>
+  <p>The frontend's <code>getAnalytics()</code> function in <code>lib/api.ts</code> calls:</p>
+  <div class="curl-code">export async function getAnalytics(projectId: string) {
+  const project = await getProject(projectId) as any
+  const tasks = await getTasks(projectId)
+  const events = await getProjectEvents(projectId)  ← THIS CALLS /events (404)
+  const members = project.members?.map((m: any) => m.user) || []
+
+  return computeAnalytics(tasks, events, members)
+}</div>
+
+  <p><strong>getProjectEvents()</strong> tries to fetch from <code>/api/projects/${projectId}/events</code> which <strong>does not exist</strong>.</p>
+
+  <p><strong>Analytics endpoint works fine</strong>, but frontend logic fails trying to fetch events separately.</p>
+</div>
+
+<div class="solution">
+  <h2>🔧 FIX APPLIED</h2>
+  <p>Updated <code>lib/api.ts</code> <code>getAnalytics()</code> function to:</p>
+  <div class="curl-code">export async function getAnalytics(projectId: string) {
+  try {
+    // Direct call to analytics endpoint - it already computes everything server-side
+    const response = await fetchJson<any>(`/api/projects/${projectId}/analytics`)
+    return response
+  } catch (error) {
+    // Fallback if analytics endpoint fails
+    const project = await getProject(projectId) as any
+    const tasks = await getTasks(projectId)
+    const members = project.members?.map((m: any) => m.user) || []
+
+    // Use empty events array since /events endpoint doesn't exist
+    const events: any[] = []
+    return computeAnalytics(tasks, events, members)
+  }
+}</div>
+  <p><strong>Key Changes:</strong></p>
+  <ul>
+    <li>Directly calls working <code>/api/projects/[id]/analytics</code> endpoint</li>
+    <li>Adds fallback with empty events array</li>
+    <li>Uses server-side computation (which already works)</li>
+    <li>Maintains backward compatibility</li>
+  </ul>
+</div>
+
+<div class="test-section">
+  <h2>🔍 Test 3: Tasks Endpoint</h2>
+  <div class="route-card">
+    <div class="route-path">POST /api/tasks</div>
+    <span class="status-badge status-warning">401 Unauthorized</span>
+    <div class="curl-code">curl -X POST "https://hostlink-ark.vercel.app/api/tasks" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: hostlink_auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiMGNlZjdiNS1iMDEwLTRlNGEtOGU1OS05ZWNiY2Y0NmE4NDYiLCJpYXQiOjE3Mzk0NzEyMDYsImV4cCI6MTczOTU3OTIwNn0.WNIBd8vdJQ0CQ0WGiLpKTzWDHvHlKhM8lIn_EarN344" \
+  -d '{"projectId":"4e21d184-6164-4012-a79e-928430a9300b","title":"Test Task","assigneeId":"b0cef7b5-b010-4e4a-8e59-9ecbcf46a846","dueDate":"2026-10-15","priority":"normal"}'</div>
+    <div class="result">
+      <strong>Result:</strong> HTTP 401 Unauthorized (expected - needs valid auth cookie)
+      <br><strong>Conclusion:</strong> Route exists and requires proper authentication
+    </div>
+  </div>
+</div>
+
+<div class="test-section">
+  <h2>📋 API Route Audit Results</h2>
+  <p><strong>Found 20 API route files - all exist and are tracked by git:</strong></p>
+  <div class="curl-code" style="background: var(--card); color: var(--text);">
+ƒ /api/auth/login
+ƒ /api/auth/logout
+ƒ /api/auth/me
+ƒ /api/auth/signup
+ƒ /api/comments/[id]
+ƒ /api/my-tasks
+ƒ /api/projects
+ƒ /api/projects/[id]
+ƒ /api/projects/[id]/analytics        ← EXISTS
+ƒ /api/projects/[id]/members
+ƒ /api/projects/[id]/members/[userId]
+ƒ /api/projects/[id]/tasks
+ƒ /api/tasks                           ← EXISTS
+ƒ /api/tasks/[id]
+ƒ /api/tasks/[id]/comments
+ƒ /api/tasks/[id]/move
+ƒ /api/users
+ƒ /api/users/search
+ƒ /api/workspace/recent-activity
+ƒ /api/workspace/search
+  </div>
+
+  <p><strong>Missing Route:</strong></p>
+  <div class="curl-code" style="background: rgba(239,68,68,0.1); color: var(--text); border: 1px solid var(--error);">
+✗ /api/projects/[id]/events            ← DOES NOT EXIST
+File: app/api/projects/[id]/events/route.ts missing
+  </div>
+</div>
+
+<div class="summary">
+  <h3>🎯 SUMMARY</h3>
+  <p><strong>Files Changed (not committed - waiting for review):</strong></p>
+  <ul>
+    <li><code>lib/api.ts</code> - Fixed <code>getAnalytics()</code> function to directly call working endpoint</li>
+  </ul>
+
+  <p><strong>Root Cause:</strong> Frontend's <code>getAnalytics()</code> was trying to fetch from non-existent <code>/events</code> endpoint</p>
+
+  <p><strong>Local Verification:</strong></p>
+  <ul>
+    <li>✅ <code>npm run build</code> succeeds with the fix</li>
+    <li>✅ All 20 API routes compile correctly</li>
+    <li>✅ <code>/api/projects/[id]/analytics</code> endpoint works (curl test proves it)</li>
+    <li>✅ Middleware correctly excludes <code>/api/*</code> routes</li>
+  </ul>
+
+  <p><strong>Next Steps:</strong> Review the fix in <code>lib/api.ts</code>, commit and push through GitHub Desktop</p>
+</div>
+
+<script>
+// Simple theme toggle
+function toggleTheme() {
+  const root = document.documentElement;
+  if (root.getAttribute('data-theme') === 'dark') {
+    root.removeAttribute('data-theme');
+  } else {
+    root.setAttribute('data-theme', 'dark');
+  }
+}
+</script>
