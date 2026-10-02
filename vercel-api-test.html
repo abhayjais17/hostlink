@@ -1,0 +1,532 @@
+<title>Vercel API Route Test Checklist</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #fafafa;
+    --card: white;
+    --text: #222;
+    --border: #e5e5e5;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111;
+      --card: #222;
+      --text: #eee;
+      --border: #444;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111;
+    --card: #222;
+    --text: #eee;
+    --border: #444;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 32px;
+    max-width: 700px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-left: 12px;
+  }
+
+  .status-success {
+    background: var(--success);
+    color: white;
+  }
+
+  .status-error {
+    background: var(--error);
+    color: white;
+  }
+
+  .status-pending {
+    background: var(--warning);
+    color: #000;
+  }
+
+  .api-group {
+    margin-bottom: 32px;
+  }
+
+  .api-group h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .route-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .method-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: monospace;
+  }
+
+  .method-get { background: #3b82f6; color: white; }
+  .method-post { background: #10b981; color: white; }
+  .method-patch { background: #f59e0b; color: #000; }
+  .method-delete { background: #ef4444; color: white; }
+
+  .route-path {
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .route-description {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  .test-section {
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px dashed #3b82f6;
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+
+  .test-section h4 {
+    font-size: 14px;
+    color: #3b82f6;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .curl-code {
+    font-family: monospace;
+    background: #000;
+    color: #00ff00;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    overflow-x: auto;
+    margin-top: 8px;
+  }
+
+  .test-notes {
+    font-size: 13px;
+    color: #666;
+    margin-top: 8px;
+  }
+
+  .live-url {
+    font-family: monospace;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+
+  .instructions {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .instructions h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
+  }
+
+  .instructions ol {
+    margin-left: 20px;
+    margin-bottom: 16px;
+  }
+
+  .instructions li {
+    margin-bottom: 8px;
+  }
+
+  .instructions code {
+    background: rgba(59, 130, 246, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  .timestamp {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 24px;
+  }
+
+  .expand-btn {
+    background: var(--info);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .expand-btn:hover {
+    opacity: 0.9;
+  }
+</style>
+<h1>Vercel API Route Test Checklist</h1>
+<div class="subtitle">After deploying the middleware fix, test ALL API endpoints on the live production site to confirm no more 404s</div>
+<div class="timestamp">Generated: October 2, 2026 · Deployment commit: c301b12</div>
+
+<div class="instructions">
+  <h3>📋 Testing Instructions</h3>
+  <ol>
+    <li>Wait for Vercel deployment to complete (check your Vercel dashboard)</li>
+    <li>Replace <code>hostlink-ark.vercel.app</code> in all commands below if your URL is different</li>
+    <li>Start with POST /api/auth/login to get an auth cookie</li>
+    <li>Test each route below in order</li>
+    <li>Mark routes as ✅ or ❌ based on the response</li>
+    <li>Report any failures back to Claude for fixing</li>
+  </ol>
+  <div class="live-url">Live URL: <strong>hostlink-ark.vercel.app</strong> (update if different)</div>
+</div>
+
+<div class="api-group">
+  <h2>Authentication Routes</h2>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="route-path">/api/auth/signup</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">Create a new user account</div>
+    <button class="expand-btn" onclick="toggleCurl('auth-signup')">Show curl test</button>
+    <div id="auth-signup" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X POST https://hostlink-ark.vercel.app/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test User", "email": "test@example.com", "password": "password123"}'</div>
+        <div class="test-notes">✅ Should return user object with 201 status</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="route-path">/api/auth/login</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">Login and get auth cookie (use for subsequent tests)</div>
+    <button class="expand-btn" onclick="toggleCurl('auth-login')">Show curl test</button>
+    <div id="auth-login" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X POST https://hostlink-ark.vercel.app/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}' \
+  -c cookies.txt</div>
+        <div class="test-notes">✅ Should return user object + Set-Cookie header. Save the cookie for other tests!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="route-path">/api/auth/me</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">Get current user from auth cookie</div>
+    <button class="expand-btn" onclick="toggleCurl('auth-me')">Show curl test</button>
+    <div id="auth-me" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X GET https://hostlink-ark.vercel.app/api/auth/me \
+  -b cookies.txt</div>
+        <div class="test-notes">✅ Should return current user object when authenticated</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="route-path">/api/auth/logout</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">Logout and clear auth cookie</div>
+    <button class="expand-btn" onclick="toggleCurl('auth-logout')">Show curl test</button>
+    <div id="auth-logout" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X POST https://hostlink-ark.vercel.app/api/auth/logout \
+  -b cookies.txt</div>
+        <div class="test-notes">✅ Should clear the auth cookie</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="api-group">
+  <h2>Projects & Tasks Routes</h2>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="route-path">/api/projects</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">List all projects (with summary stats)</div>
+    <button class="expand-btn" onclick="toggleCurl('projects-get')">Show curl test</button>
+    <div id="projects-get" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X GET https://hostlink-ark.vercel.app/api/projects \
+  -b cookies.txt</div>
+        <div class="test-notes">✅ Should return array of projects</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="route-path">/api/projects</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">Create a new project</div>
+    <button class="expand-btn" onclick="toggleCurl('projects-post')">Show curl test</button>
+    <div id="projects-post" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X POST https://hostlink-ark.vercel.app/api/projects \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"name": "Test Project", "color": "blue", "description": "Test project"}'</div>
+        <div class="test-notes">✅ Should return created project object with 201 status</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="route-path">/api/tasks</span>
+      </div>
+      <span class="status-badge status-error">FIXED 404</span>
+    </div>
+    <div class="route-description">Create a new task (THIS WAS BROKEN)</div>
+    <button class="expand-btn" onclick="toggleCurl('tasks-post')">Show curl test</button>
+    <div id="tasks-post" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X POST https://hostlink-ark.vercel.app/api/tasks \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"projectId": "PROJECT_ID", "title": "Test Task", "assigneeId": "u1", "dueDate": "2026-10-10", "priority": "normal"}'</div>
+        <div class="test-notes">⚠️ <strong>CRITICAL TEST:</strong> This was returning 404 due to middleware. Should now return 201 with created task.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="route-path">/api/projects/:id/analytics</span>
+      </div>
+      <span class="status-badge status-error">FIXED 404</span>
+    </div>
+    <div class="route-description">Get project analytics (THIS WAS BROKEN)</div>
+    <button class="expand-btn" onclick="toggleCurl('analytics-get')">Show curl test</button>
+    <div id="analytics-get" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X GET https://hostlink-ark.vercel.app/api/projects/website-revamp/analytics \
+  -b cookies.txt</div>
+        <div class="test-notes">⚠️ <strong>CRITICAL TEST:</strong> This was returning 404 due to middleware. Should now return analytics data.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="api-group">
+  <h2>Other Key Routes</h2>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="route-path">/api/users</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">List all users</div>
+    <button class="expand-btn" onclick="toggleCurl('users-get')">Show curl test</button>
+    <div id="users-get" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X GET https://hostlink-ark.vercel.app/api/users \
+  -b cookies.txt</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-get">GET</span>
+        <span class="route-path">/api/my-tasks</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">Get current user's personal tasks</div>
+    <button class="expand-btn" onclick="toggleCurl('my-tasks')">Show curl test</button>
+    <div id="my-tasks" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X GET "https://hostlink-ark.vercel.app/api/my-tasks?userId=u1" \
+  -b cookies.txt</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="route-card">
+    <div class="route-header">
+      <div>
+        <span class="method-badge method-post">POST</span>
+        <span class="route-path">/api/tasks/:id/move</span>
+      </div>
+      <span class="status-badge status-pending">Pending test</span>
+    </div>
+    <div class="route-description">Move a task between statuses</div>
+    <button class="expand-btn" onclick="toggleCurl('task-move')">Show curl test</button>
+    <div id="task-move" style="display: none;">
+      <div class="test-section">
+        <h4>📡 Test Command:</h4>
+        <div class="curl-code">curl -X POST https://hostlink-ark.vercel.app/api/tasks/t7/move \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"toStatus": "review"}'</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="api-group">
+  <h2>Complete API Route List (20 routes total)</h2>
+  <div class="test-notes" style="margin-top: 12px;">
+    All routes should now be accessible after middleware fix. Here are all routes compiled:
+  </div>
+  <div class="curl-code" style="background: var(--card); color: var(--text); margin-top: 12px;">
+ƒ /api/auth/login<br>
+ƒ /api/auth/logout<br>
+ƒ /api/auth/me<br>
+ƒ /api/auth/signup<br>
+ƒ /api/comments/[id]<br>
+ƒ /api/my-tasks<br>
+ƒ /api/projects<br>
+ƒ /api/projects/[id]<br>
+ƒ /api/projects/[id]/analytics<br>
+ƒ /api/projects/[id]/members<br>
+ƒ /api/projects/[id]/members/[userId]<br>
+ƒ /api/projects/[id]/tasks<br>
+ƒ /api/tasks<br>
+ƒ /api/tasks/[id]<br>
+ƒ /api/tasks/[id]/comments<br>
+ƒ /api/tasks/[id]/move<br>
+ƒ /api/users<br>
+ƒ /api/users/search<br>
+ƒ /api/workspace/recent-activity<br>
+ƒ /api/workspace/search
+  </div>
+</div>
+
+<div class="instructions" style="margin-top: 32px;">
+  <h3>✅ What Was Fixed</h3>
+  <p><strong>Root Cause:</strong> middleware.ts matcher pattern <code>'/((?!_next/static|_next/image|favicon.ico|ca.pem).*)'</code> was intercepting ALL routes except the 4 listed, including <code>/api/*</code> routes.</p>
+  <p><strong>Fix:</strong> Updated matcher to <code>'/((?!_next/static|_next/image|favicon.ico|ca.pem|api/).*)'</code> to exclude API routes.</p>
+  <p><strong>Also fixed:</strong></p>
+  <ul>
+    <li>Missing <code>app/api/tasks/route.ts</code> file (created)</li>
+    <li>Defensive error handling in <code>lib/api.ts</code> to prevent <code>toLowerCase</code> crashes</li>
+  </ul>
+  <p><strong>Status:</strong> Deployment commit <code>c301b12</code> pushed. Wait 2-3 minutes, then test all routes above.</p>
+</div>
+
+<script>
+function toggleCurl(id) {
+  const element = document.getElementById(id);
+  const button = event.target;
+  if (element.style.display === 'none') {
+    element.style.display = 'block';
+    button.textContent = 'Hide curl test';
+  } else {
+    element.style.display = 'none';
+    button.textContent = 'Show curl test';
+  }
+}
+</script>
