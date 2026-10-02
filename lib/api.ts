@@ -31,7 +31,8 @@ function normalizeProject(raw: any): Project {
   return {
     ...raw,
     description: raw.description ?? '',
-    memberIds: raw.memberIds ?? raw.members?.map((m: any) => m.userId ?? m.id) ?? []
+    memberIds: raw.memberIds ?? raw.members?.map((m: any) => m.userId ?? m.id) ?? [],
+    members: raw.members // Preserve the full members array with nested user data
   }
 }
 
@@ -134,6 +135,30 @@ export async function updateProject(id: string, input: UpdateProjectInput) {
 
 export async function deleteProject(id: string) {
   await fetchJson(`/api/projects/${id}`, { method: 'DELETE' })
+}
+
+// Project members
+export async function getProjectMembers(projectId: string) {
+  return fetchJson<any[]>(`/api/projects/${projectId}/members`)
+}
+
+export async function addProjectMember(projectId: string, userId: string) {
+  return fetchJson<any>(`/api/projects/${projectId}/members`, {
+    method: 'POST',
+    body: JSON.stringify({ userId })
+  })
+}
+
+export async function removeProjectMember(projectId: string, userId: string) {
+  return fetchJson<any>(`/api/projects/${projectId}/members/${userId}`, {
+    method: 'DELETE'
+  })
+}
+
+export async function searchUsers(query: string, projectId?: string) {
+  const params = new URLSearchParams({ q: query })
+  if (projectId) params.append('projectId', projectId)
+  return fetchJson<any[]>(`/api/users/search?${params}`)
 }
 
 export async function getTasks(projectId?: string, filters: TaskFilters = {}) {
