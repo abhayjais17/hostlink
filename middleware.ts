@@ -14,7 +14,6 @@ export async function middleware(request: NextRequest) {
 
   // Check if the route needs protection
   const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
-  const isPublic = publicRoutes.includes(pathname)
 
   // If accessing a protected route without a token, redirect to login
   if (isProtected && !token) {
@@ -49,6 +48,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|ca.pem).*)',
+    '/((?!_next/static|_next/image|favicon.ico|ca.pem|api/).*)',
   ],
 }
