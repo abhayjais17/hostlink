@@ -157,6 +157,13 @@ export async function addProjectMember(projectId: string, userId: string) {
   })
 }
 
+export async function updateProjectMember(projectId: string, userId: string, data: { role?: 'leader' | 'member'; designation?: string }) {
+  return fetchJson<any>(`/api/projects/${projectId}/members/${userId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  })
+}
+
 export async function removeProjectMember(projectId: string, userId: string) {
   return fetchJson<any>(`/api/projects/${projectId}/members/${userId}`, {
     method: 'DELETE'
