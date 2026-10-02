@@ -46,7 +46,10 @@ function TaskForm({ request, task, projects, users, pending, setPending, onClose
   const [errors, setErrors] = useState<Record<string, string>>({})
   const saving = useRef(false)
   const formRef = useRef<HTMLFormElement>(null)
-  const members = users.filter(user => projects.find(project => project.id === projectId)?.memberIds.includes(user.id))
+  const selectedProject = projects.find(project => project.id === projectId)
+  const members = selectedProject?.memberIds?.length
+    ? users.filter(user => selectedProject.memberIds.includes(user.id))
+    : []
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (saving.current) return
