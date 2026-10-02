@@ -25,13 +25,18 @@ export async function GET(
     // Compute burndown
     const today = new Date()
     const burndown = []
+    // Sort events by createdAt to ensure correct replay
+    const sortedEvents = events.sort((a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
+
     for (let i = 0; i < 10; i++) {
       const date = subDays(startOfDay(today), 9 - i)
       const cutoff = endOfDay(date).getTime()
 
       const existing = tasks.filter(t => new Date(t.createdAt).getTime() <= cutoff)
       const states = new Map<string, string>()
-      for (const event of events) {
+      for (const event of sortedEvents) {
         if (new Date(event.createdAt).getTime() > cutoff) break
         states.set(event.taskId, event.toStatus)
       }

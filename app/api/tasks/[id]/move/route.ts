@@ -46,7 +46,8 @@ export async function POST(
       data: {
         status: toStatus,
         movedAt: now,
-        completedAt: toStatus === 'done' ? now : toStatus === 'review' ? null : undefined
+        // Clear completedAt when moving away from done, set it when moving to done
+        completedAt: toStatus === 'done' ? now : null
       }
     })
 

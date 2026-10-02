@@ -23,6 +23,20 @@ export async function GET(
   }
 }
 
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  backlog: ['in_progress'],
+  in_progress: ['backlog', 'review'],
+  review: ['in_progress', 'done'],
+  done: ['review']
+}
+
+function transitionError(from: string, to: string): string {
+  if (from === 'backlog') return 'Backlog tasks must move to In Progress first.'
+  if (to === 'done') return 'Tasks must go through Review before Done.'
+  if (from === 'done') return 'Completed tasks must reopen in Review first.'
+  return `Cannot move from ${from} to ${to}.`
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -38,6 +52,27 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get current task state BEFORE update
+    const oldTask = await prisma.task.findUnique({ where: { id } })
+    if (!oldTask) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+    }
+
+    // If status is being changed, validate transition
+    if (status && status !== oldTask.status) {
+      const allowedTo = ALLOWED_TRANSITIONS[oldTask.status] || []
+      if (!allowedTo.includes(status)) {
+        return NextResponse.json(
+          {
+            error: transitionError(oldTask.status, status),
+            allowed: allowedTo
+          },
+          { status: 422 }
+        )
+      }
+    }
+
+    const now = new Date()
     const task = await prisma.task.update({
       where: { id },
       data: {
@@ -47,22 +82,24 @@ export async function PATCH(
         dueDate: dueDate || undefined,
         priority: priority || undefined,
         ...(status && { status }),
-        movedAt: status ? new Date() : undefined,
-        completedAt: status === 'done' ? new Date() : status === 'done' ? undefined : null
+        movedAt: status ? now : undefined,
+        // Only update completedAt if status is changing
+        completedAt: status
+          ? (status === 'done' ? now : null)
+          : undefined
       }
     })
 
-    if (status) {
-      const oldTask = await prisma.task.findUnique({ where: { id } })
+    if (status && status !== oldTask.status) {
       await prisma.taskEvent.create({
         data: {
           id: crypto.randomUUID(),
           taskId: task.id,
           projectId: task.projectId,
-          userId: assigneeId || oldTask?.assigneeId || userId,
-          fromStatus: oldTask?.status,
+          userId: assigneeId || oldTask.assigneeId || userId,
+          fromStatus: oldTask.status,
           toStatus: status,
-          createdAt: new Date()
+          createdAt: now
         }
       })
     }
