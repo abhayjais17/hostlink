@@ -51,29 +51,37 @@ async function sendTelegramMessage(chatId: string, text: string): Promise<boolea
 }
 
 export async function POST(request: NextRequest) {
+  console.log('[telegram/webhook] ============ WEBHOOK INVOKED ============')
+
   try {
     // Verify secret token
     if (!verifySecretToken(request)) {
-      console.warn('[telegram/webhook] Invalid or missing secret token')
+      console.warn('[telegram/webhook] ❌ Invalid or missing secret token')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('[telegram/webhook] ✅ Secret token verified')
 
     // Parse update payload
     let update: any
     try {
       update = await request.json()
+      console.log('[telegram/webhook] Received update:', JSON.stringify(update, null, 2))
     } catch (error) {
-      console.error('[telegram/webhook] Failed to parse JSON:', error)
+      console.error('[telegram/webhook] ❌ Failed to parse JSON:', error)
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
     // Handle message update
     if (update.message) {
       const { message } = update
+      console.log('[telegram/webhook] Processing message from chat:', message.chat.id)
+      console.log('[telegram/webhook] Message text:', message.text)
 
       // Handle /start command with payload
       if (message.text && message.text.startsWith('/start')) {
         const payload = message.text.split(' ')[1]
+        console.log('[telegram/webhook] /start command detected, payload:', payload || '(none)')
 
         if (payload) {
           await handleStartCommand(message.chat.id.toString(), payload)
@@ -91,11 +99,14 @@ export async function POST(request: NextRequest) {
           'Welcome to Hostlink Notifications! To connect your account, visit Settings in Hostlink and click "Connect Telegram".'
         )
       }
+    } else {
+      console.log('[telegram/webhook] No message in update')
     }
 
+    console.log('[telegram/webhook] ✅ Webhook processed successfully')
     return NextResponse.json({ status: 'ok' })
   } catch (error) {
-    console.error('[telegram/webhook] Unexpected error:', error)
+    console.error('[telegram/webhook] ❌ Unexpected error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -104,8 +115,13 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleStartCommand(chatId: string, token: string) {
+  console.log(`[telegram/webhook/start] ============ HANDLING /start ============`)
+  console.log(`[telegram/webhook/start] Chat ID: ${chatId}`)
+  console.log(`[telegram/webhook/start] Token: ${token}`)
+
   try {
     // Find user by link token
+    console.log('[telegram/webhook/start] Looking up user by token...')
     const user = await prisma.user.findFirst({
       where: {
         telegramLinkToken: token,
@@ -116,6 +132,20 @@ async function handleStartCommand(chatId: string, token: string) {
     })
 
     if (!user) {
+      console.log('[telegram/webhook/start] ❌ No user found with valid token')
+
+      // Check if token exists but is expired
+      const expiredUser = await prisma.user.findFirst({
+        where: { telegramLinkToken: token },
+      })
+
+      if (expiredUser) {
+        console.log('[telegram/webhook/start] Token exists but expired for user:', expiredUser.id)
+        console.log('[telegram/webhook/start] Token expired at:', expiredUser.telegramLinkTokenExpiresAt)
+      } else {
+        console.log('[telegram/webhook/start] Token does not exist in database at all')
+      }
+
       // Invalid or expired token
       await sendTelegramMessage(
         chatId,
@@ -124,23 +154,36 @@ async function handleStartCommand(chatId: string, token: string) {
       return
     }
 
+    console.log('[telegram/webhook/start] ✅ User found:', user.id, user.email)
+    console.log('[telegram/webhook/start] Token expires at:', user.telegramLinkTokenExpiresAt)
+
     // Update user with chat ID and clear token
+    console.log('[telegram/webhook/start] Updating user with chat ID...')
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        telegramChatId: chatId.toString(),
+        telegramChatId: chatId,
         telegramLinkToken: null,
         telegramLinkTokenExpiresAt: null,
       },
     })
 
+    console.log('[telegram/webhook/start] ✅ User updated successfully')
+
     // Send success message
-    await sendTelegramMessage(
+    console.log('[telegram/webhook/start] Sending success message...')
+    const sent = await sendTelegramMessage(
       chatId,
       `✅ <b>Connected to Hostlink!</b>\n\nYou'll now get notified when tasks are assigned to you.\n\nIf you didn't request this, you can ignore this message.`
     )
+
+    if (sent) {
+      console.log('[telegram/webhook/start] ✅ Success message sent')
+    } else {
+      console.log('[telegram/webhook/start] ❌ Failed to send success message')
+    }
   } catch (error) {
-    console.error('[telegram/webhook] Error handling /start:', error)
+    console.error('[telegram/webhook/start] ❌ Error handling /start:', error)
     await sendTelegramMessage(
       chatId,
       '❌ An error occurred while connecting your account. Please try again.'

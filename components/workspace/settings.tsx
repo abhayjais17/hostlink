@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Check, Moon, Sun, MessageCircle, Link2, Unlink } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAppearance } from '@/components/providers'
@@ -38,19 +38,20 @@ function TelegramNotifications({ userId }: { userId: string }) {
   const [isDisconnecting, setIsDisconnecting] = useState(false)
 
   // Check connection status on mount
-  useState(() => {
+  useEffect(() => {
     async function checkStatus() {
       try {
         const res = await fetch('/api/telegram/status')
         const data = await res.json()
+        console.log('[Telegram Settings] Status check result:', data)
         setIsConnected(data.isConnected)
       } catch (error) {
-        console.error('Failed to check Telegram status:', error)
+        console.error('[Telegram Settings] Failed to check Telegram status:', error)
         setIsConnected(false)
       }
     }
     checkStatus()
-  })
+  }, [])
 
   async function handleConnect() {
     setIsLoading(true)

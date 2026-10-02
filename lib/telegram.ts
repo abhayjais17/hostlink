@@ -160,6 +160,8 @@ export async function generateLinkingToken(userId: string): Promise<{ token: str
 
 // Get user's Telegram connection status
 export async function getTelegramStatus(userId: string): Promise<{ isConnected: boolean; chatId?: string | null }> {
+  console.log('[telegram/getTelegramStatus] Checking status for user:', userId)
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -167,10 +169,16 @@ export async function getTelegramStatus(userId: string): Promise<{ isConnected: 
     },
   })
 
-  return {
+  console.log('[telegram/getTelegramStatus] User found:', !!user)
+  console.log('[telegram/getTelegramStatus] telegramChatId:', user?.telegramChatId || '(null)')
+
+  const result = {
     isConnected: !!user?.telegramChatId,
     chatId: user?.telegramChatId || null,
   }
+
+  console.log('[telegram/getTelegramStatus] Returning:', result)
+  return result
 }
 
 // Disconnect Telegram from a user
