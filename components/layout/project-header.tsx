@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion'
 import { Copy, Ellipsis, Pencil, Share2, Star, Trash2 } from 'lucide-react'
+import { ProjectMembers } from '@/components/project/project-members'
 import { toast } from 'sonner'
 import { Breadcrumbs } from './breadcrumbs'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -40,7 +41,18 @@ export function ProjectHeader({ projectId, children }: { projectId: string; chil
       <Breadcrumbs items={[{ label: 'Projects', href: '/projects' }, { label: project.name }]} />
       <div className="mt-5 mb-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 max-w-full items-center gap-3"><div aria-hidden="true" className={cn('flex size-11 shrink-0 items-center justify-center rounded-lg text-base font-semibold text-primary-foreground', projectColors.find(option => option.value === project.color)?.className ?? 'bg-primary')}>{initials(project.name)}</div><div className="min-w-0"><div className="flex items-center gap-2"><h1 className="truncate text-xl font-semibold tracking-tight">{project.name}</h1><IconButton label={starred ? 'Unstar project' : 'Star project'} aria-pressed={starred} onClick={() => toggleProjectStar(project.id)}><Star className={cn(starred && 'fill-highlight text-highlight')} /></IconButton></div><p className="mt-0.5 max-w-xl text-xs text-muted-foreground">{project.description}</p></div></div>
-        <div className="ml-auto flex items-center gap-3">{users && <UserAvatarStack users={users.filter(user => project.memberIds.includes(user.id))} />}<span className="mx-1 hidden h-5 border-l sm:block" /><Button variant="secondary" onClick={() => { setShareUrl(`${window.location.origin}${base}`); setShareOpen(true) }}><Share2 data-icon="inline-start" />Share</Button>
+        <div className="ml-auto flex items-center gap-3">
+          {users && <UserAvatarStack users={users.filter(user => project.memberIds.includes(user.id))} />}
+          <span className="mx-1 hidden h-5 border-l sm:block" />
+          <ProjectMembers projectId={projectId} members={project.members?.map((m: any) => ({
+            id: m.user.id,
+            userId: m.user.id,
+            name: m.user.name,
+            email: m.user.email,
+            role: m.user.role,
+            color: m.user.color
+          })) || []} />
+          <Button variant="secondary" onClick={() => { setShareUrl(`${window.location.origin}${base}`); setShareOpen(true) }}><Share2 data-icon="inline-start" />Share</Button>
           <DropdownMenu><DropdownMenuTrigger render={<IconButton label="Project actions"><Ellipsis /></IconButton>}><Ellipsis /></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-48"><DropdownMenuGroup>
             <DropdownMenuItem onClick={() => toast.info('Project editing is unavailable in this demo.')}><Pencil />Edit project</DropdownMenuItem>
             <DropdownMenuItem variant="destructive" onClick={() => toast.info('Project deletion is unavailable in this demo.', { description: 'No data has been deleted.' })}><Trash2 />Delete project</DropdownMenuItem>
