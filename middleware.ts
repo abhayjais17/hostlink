@@ -5,7 +5,6 @@ const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
 )
 
-const publicRoutes = ['/login', '/signup', '/']
 const protectedRoutes = ['/projects', '/dashboard', '/analytics', '/team', '/settings', '/my-tasks']
 
 export async function middleware(request: NextRequest) {
