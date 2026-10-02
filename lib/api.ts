@@ -20,8 +20,16 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
     ...options
   })
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: response.statusText }))
-    throw new ApiError(error.error || response.statusText, error.allowed)
+    try {
+      const error = await response.json()
+      // Defensive error handling - extract error message safely
+      const errorMessage = (error?.error || error?.message || response.statusText) as string
+      const allowed = error?.allowed || []
+      throw new ApiError(errorMessage, allowed)
+    } catch {
+      // Fallback if response is not valid JSON
+      throw new ApiError(response.statusText)
+    }
   }
   return response.json()
 }
