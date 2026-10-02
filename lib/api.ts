@@ -291,12 +291,20 @@ export async function getWorkspaceAnalytics() {
 }
 
 export async function getAnalytics(projectId: string) {
-  const project = await getProject(projectId) as any
-  const tasks = await getTasks(projectId)
-  const events = await getProjectEvents(projectId)
-  const members = project.members?.map((m: any) => m.user) || []
+  try {
+    // Direct call to analytics endpoint - it already computes everything server-side
+    const response = await fetchJson<any>(`/api/projects/${projectId}/analytics`)
+    return response
+  } catch (error) {
+    // Fallback if analytics endpoint fails
+    const project = await getProject(projectId) as any
+    const tasks = await getTasks(projectId)
+    const members = project.members?.map((m: any) => m.user) || []
 
-  return computeAnalytics(tasks, events, members)
+    // Use empty events array since /events endpoint doesn't exist
+    const events: any[] = []
+    return computeAnalytics(tasks, events, members)
+  }
 }
 
 export async function getTaskEvents(taskId: string) {
