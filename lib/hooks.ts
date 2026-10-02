@@ -28,6 +28,7 @@ export const useComments = (taskId: string) => useApi(['comments', taskId], () =
 export const useTaskEvents = (taskId: string) => useApi(['task-events', taskId], () => api.getTaskEvents(taskId))
 export const useProjectEvents = (projectId: string) => useApi(['project-events', projectId], () => api.getProjectEvents(projectId))
 export const useAnalytics = (projectId: string) => useApi(['analytics', projectId], () => api.getAnalytics(projectId))
+export const useTaskCommits = (taskId: string) => useApi(['task-commits', taskId], () => api.getTaskCommits(taskId))
 const emptyFilters: TaskFilters = {}
 export function useTaskFilters(projectId: string) {
   return useUIStore(state => state.filtersByProject[projectId] ?? emptyFilters)

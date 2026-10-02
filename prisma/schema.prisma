@@ -11,18 +11,19 @@ datasource db {
 }
 
 model User {
-  id        String   @id
-  name      String
-  email     String   @unique
-  password  String?
-  role      String
-  color     String
-  createdAt DateTime @default(now())
+  id            String       @id
+  name          String
+  email         String       @unique
+  password      String?
+  role          String
+  color         String
+  createdAt     DateTime     @default(now())
 
-  projects       ProjectMember[]
-  tasks          Task[]
-  comments       Comment[]
-  taskEvents     TaskEvent[]
+  projects         ProjectMember[]
+  tasks            Task[]
+  comments         Comment[]
+  taskEvents       TaskEvent[]
+  commitLinks      CommitLink[]
 }
 
 model Project {
@@ -52,23 +53,24 @@ model ProjectMember {
 }
 
 model Task {
-  id          String    @id
-  key         String    @unique
-  projectId   String
-  title       String
-  description String?
-  assigneeId  String
-  priority    String
-  status      String
-  dueDate     String
-  createdAt   DateTime  @default(now())
-  movedAt     DateTime  @default(now())
-  completedAt DateTime?
+  id            String       @id
+  key           String       @unique
+  projectId     String
+  title         String
+  description   String?
+  assigneeId    String
+  priority      String
+  status        String
+  dueDate       String
+  createdAt     DateTime     @default(now())
+  movedAt       DateTime     @default(now())
+  completedAt   DateTime?
 
-  project  Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee User        @relation(fields: [assigneeId], references: [id])
-  comments Comment[]
-  events   TaskEvent[]
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee      User           @relation(fields: [assigneeId], references: [id])
+  comments      Comment[]
+  events        TaskEvent[]
+  commitLinks   CommitLink[]
 
   @@index([projectId, status])
   @@index([assigneeId])
@@ -101,5 +103,26 @@ model TaskEvent {
   user    User    @relation(fields: [userId], references: [id])
 
   @@index([projectId, createdAt])
+  @@index([taskId])
+}
+
+model CommitLink {
+  id            String   @id @default(uuid())
+  taskId        String
+  commitSha     String   @db.VarChar(64)
+  commitMessage String   @db.Text
+  authorName    String
+  authorEmail   String?
+  authorUserId  String?
+  githubUsername String?
+  branch        String?
+  commitUrl     String   @db.VarChar(512)
+  committedAt   DateTime
+  createdAt     DateTime @default(now())
+
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorUser  User?    @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+
+  @@unique([taskId, commitSha])
   @@index([taskId])
 }

@@ -314,3 +314,27 @@ export async function getTaskEvents(taskId: string) {
 export async function getProjectEvents(projectId: string) {
   return fetchJson<TaskEvent[]>(`/api/projects/${projectId}/events`)
 }
+
+// Commit links from GitHub webhook integration
+export interface CommitLink {
+  id: string
+  taskId: string
+  commitSha: string
+  commitMessage: string
+  authorName: string
+  authorEmail: string | null
+  githubUsername: string | null
+  branch: string | null
+  commitUrl: string
+  committedAt: string
+  createdAt: string
+  authorUser: {
+    id: string
+    name: string
+    color: string
+  } | null
+}
+
+export async function getTaskCommits(taskId: string) {
+  return fetchJson<CommitLink[]>(`/api/tasks/${taskId}/commits`)
+}

@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { formatDistanceToNowStrict } from 'date-fns'
-import { ArrowRight, MessageSquare, Trash2 } from 'lucide-react'
+import { ArrowRight, MessageSquare, Trash2, GitCommit } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -12,12 +12,13 @@ import { IconButton, LoadingButton, Modal, StatusBadge, UserAvatar } from '@/com
 import { Skeleton } from '@/components/ui/skeleton'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { addComment, deleteComment } from '@/lib/api'
-import { useComments, useCurrentUser, useTaskEvents } from '@/lib/hooks'
+import { useComments, useCurrentUser, useTaskEvents, useTaskCommits } from '@/lib/hooks'
 import type { User } from '@/lib/types'
 
 export function TaskActivity({ taskId, users }: { taskId: string; users: User[] }) {
   const { data: comments, error: commentError, mutate: reloadComments } = useComments(taskId)
   const { data: events, error: eventError, mutate: reloadEvents } = useTaskEvents(taskId)
+  const { data: commits } = useTaskCommits(taskId)
   const { data: currentUser } = useCurrentUser()
   const [tab, setTab] = useState('all')
   const [body, setBody] = useState('')
@@ -30,6 +31,7 @@ export function TaskActivity({ taskId, users }: { taskId: string; users: User[] 
   const activity = [
     ...(tab !== 'history' ? (comments ?? []).map(comment => ({ kind: 'comment' as const, id: comment.id, date: comment.createdAt, userId: comment.authorId, comment })) : []),
     ...(tab !== 'comments' ? (events ?? []).map(event => ({ kind: 'event' as const, id: event.id, date: event.createdAt, userId: event.userId, event })) : []),
+    ...(tab !== 'comments' ? (commits ?? []).map(commit => ({ kind: 'commit' as const, id: commit.id, date: commit.committedAt, userId: commit.authorUser?.id || null, commit })) : []),
   ].sort((a, b) => a.date.localeCompare(b.date))
   async function post() {
     if (!currentUser || saving.current || !body.trim()) return
@@ -55,8 +57,10 @@ export function TaskActivity({ taskId, users }: { taskId: string; users: User[] 
     {commentError || eventError ? <div role="alert"><p>Activity could not be loaded.</p><Button variant="secondary" onClick={() => { void reloadComments(); void reloadEvents() }}>Retry</Button></div> : !comments || !events ? <div aria-label="Loading activity" className="flex flex-col gap-3"><Skeleton className="h-16" /><Skeleton className="h-16" /></div> : <ol aria-label="Activity thread" className="flex flex-col gap-5">{activity.map(item => {
       const user = users.find(user => user.id === item.userId)
       return <motion.li key={item.id} initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : 0.18 }} className="flex min-w-0 gap-2">
-        {user && <UserAvatar user={user} size="sm" />}<div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-xs font-medium text-strong">{user?.name ?? 'Team member'}</span><time dateTime={item.date} title={new Date(item.date).toLocaleString()} className="text-[11px] text-muted-foreground">{formatDistanceToNowStrict(new Date(item.date), { addSuffix: true })}</time>{item.kind === 'comment' && item.userId === currentUser?.id && <IconButton label="Delete comment" className="ml-auto" disabled={pending} onClick={() => setDeleting(item.id)}><Trash2 /></IconButton>}</div>
-          {item.kind === 'comment' ? <p className="mt-1 whitespace-pre-wrap break-words text-[13px] leading-5">{item.comment.body}</p> : <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><span>{item.event.fromStatus ? 'moved this' : 'created this in'}</span>{item.event.fromStatus && <><StatusBadge status={item.event.fromStatus} /><ArrowRight className="size-3" aria-hidden="true" /></>}<StatusBadge status={item.event.toStatus} /></div>}
+        {user && <UserAvatar user={user} size="sm" />}
+        {!user && item.kind === 'commit' && item.commit.authorUser && <UserAvatar user={{ id: item.commit.authorUser.id, name: item.commit.authorUser.name, color: item.commit.authorUser.color, email: '', role: 'member' }} size="sm" />}
+        <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-xs font-medium text-strong">{user?.name ?? (item.kind === 'commit' ? (item.commit.authorUser?.name || item.commit.authorName) : 'Team member')}</span><time dateTime={item.date} title={new Date(item.date).toLocaleString()} className="text-[11px] text-muted-foreground">{formatDistanceToNowStrict(new Date(item.date), { addSuffix: true })}</time>{item.kind === 'comment' && item.userId === currentUser?.id && <IconButton label="Delete comment" className="ml-auto" disabled={pending} onClick={() => setDeleting(item.id)}><Trash2 /></IconButton>}</div>
+          {item.kind === 'comment' ? <p className="mt-1 whitespace-pre-wrap break-words text-[13px] leading-5">{item.comment.body}</p> : item.kind === 'event' ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><span>{item.event.fromStatus ? 'moved this' : 'created this in'}</span>{item.event.fromStatus && <><StatusBadge status={item.event.fromStatus} /><ArrowRight className="size-3" aria-hidden="true" /></>}<StatusBadge status={item.event.toStatus} /></div> : <div className="mt-1 flex flex-col gap-1"><a href={item.commit.commitUrl.startsWith('https://github.com/') ? item.commit.commitUrl : '#'} target="_blank" rel="noopener noreferrer" className="text-[13px] leading-5 hover:underline flex items-center gap-1.5"><GitCommit className="size-3.5 flex-shrink-0" aria-hidden="true" /><span className="truncate">{item.commit.commitMessage.split('\n')[0]}</span></a>{item.commit.branch && <span className="text-[11px] text-muted-foreground">on {item.commit.branch}</span>}</div>}
         </div>
       </motion.li>
     })}</ol>}
