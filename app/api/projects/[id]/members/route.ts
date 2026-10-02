@@ -33,11 +33,13 @@ export async function GET(
 
     // Return members sorted by join time (oldest first)
     const members = project.members.map(m => ({
-      id: m.user.id,
+      id: m.id,
       userId: m.user.id,
       name: m.user.name,
       email: m.user.email,
-      role: m.user.role,
+      role: m.role,
+      designation: m.designation,
+      userRole: m.user.role,
       color: m.user.color,
       joinedAt: m.id // Using member id as proxy for join order
     })).sort((a, b) => a.joinedAt.localeCompare(b.joinedAt))
@@ -104,21 +106,24 @@ export async function POST(
       return NextResponse.json({ error: 'User is already a member' }, { status: 409 })
     }
 
-    // Add the member
+    // Add the member (default role is "member")
     const newMembership = await prisma.projectMember.create({
       data: {
         projectId: id,
-        userId: targetUserId
+        userId: targetUserId,
+        role: 'member'
       },
       include: { user: true }
     })
 
     return NextResponse.json({
-      id: newMembership.user.id,
+      id: newMembership.id,
       userId: newMembership.user.id,
       name: newMembership.user.name,
       email: newMembership.user.email,
-      role: newMembership.user.role,
+      role: newMembership.role,
+      designation: newMembership.designation,
+      userRole: newMembership.user.role,
       color: newMembership.user.color
     }, { status: 201 })
   } catch (error) {
