@@ -18,7 +18,7 @@ import type { User } from '@/lib/types'
 export function TaskActivity({ taskId, users }: { taskId: string; users: User[] }) {
   const { data: comments, error: commentError, mutate: reloadComments } = useComments(taskId)
   const { data: events, error: eventError, mutate: reloadEvents } = useTaskEvents(taskId)
-  const { data: commits } = useTaskCommits(taskId)
+  const { data: commits, error: commitError } = useTaskCommits(taskId)
   const { data: currentUser } = useCurrentUser()
   const [tab, setTab] = useState('all')
   const [body, setBody] = useState('')
@@ -28,11 +28,21 @@ export function TaskActivity({ taskId, users }: { taskId: string; users: User[] 
   const saving = useRef(false)
   const endRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
+
+  // Build activity list from all sources - each source is independent
+  const hasComments = comments && !commentError
+  const hasEvents = events && !eventError
+  const hasCommits = commits && !commitError
+
   const activity = [
-    ...(tab !== 'history' ? (comments ?? []).map(comment => ({ kind: 'comment' as const, id: comment.id, date: comment.createdAt, userId: comment.authorId, comment })) : []),
-    ...(tab !== 'comments' ? (events ?? []).map(event => ({ kind: 'event' as const, id: event.id, date: event.createdAt, userId: event.userId, event })) : []),
-    ...(tab !== 'comments' ? (commits ?? []).map(commit => ({ kind: 'commit' as const, id: commit.id, date: commit.committedAt, userId: commit.authorUser?.id || null, commit })) : []),
+    ...(tab !== 'history' && hasComments ? (comments ?? []).map(comment => ({ kind: 'comment' as const, id: comment.id, date: comment.createdAt, userId: comment.authorId, comment })) : []),
+    ...(tab !== 'comments' && hasEvents ? (events ?? []).map(event => ({ kind: 'event' as const, id: event.id, date: event.createdAt, userId: event.userId, event })) : []),
+    ...(tab !== 'comments' && hasCommits ? (commits ?? []).map(commit => ({ kind: 'commit' as const, id: commit.id, date: commit.committedAt, userId: commit.authorUser?.id || null, commit })) : []),
   ].sort((a, b) => a.date.localeCompare(b.date))
+
+  // Show loading state only when ALL sources are loading
+  const allLoading = !comments && !events && !commits
+
   async function post() {
     if (!currentUser || saving.current || !body.trim()) return
     saving.current = true; setPending(true); setError('')
@@ -54,7 +64,14 @@ export function TaskActivity({ taskId, users }: { taskId: string; users: User[] 
   return <section aria-label="Task activity" className="flex min-w-0 flex-col gap-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">Activity</h3><span className="text-xs text-muted-foreground">{comments?.length ?? 0} comments</span></div>
     <ToggleGroup aria-label="Activity view" variant="outline" spacing={0} value={[tab]} onValueChange={values => { if (values.length) setTab(String(values[0])) }}>{['all', 'comments', 'history'].map(value => <ToggleGroupItem key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</ToggleGroupItem>)}</ToggleGroup>
-    {commentError || eventError ? <div role="alert"><p>Activity could not be loaded.</p><Button variant="secondary" onClick={() => { void reloadComments(); void reloadEvents() }}>Retry</Button></div> : !comments || !events ? <div aria-label="Loading activity" className="flex flex-col gap-3"><Skeleton className="h-16" /><Skeleton className="h-16" /></div> : <ol aria-label="Activity thread" className="flex flex-col gap-5">{activity.map(item => {
+
+    {/* Show independent error messages for each source */}
+    {commentError && <div role="alert" className="text-xs text-muted-foreground p-2 bg-muted/50 rounded"><p>⚠️ Could not load comments. <Button variant="link" className="h-auto p-0 text-xs" onClick={() => void reloadComments()}>Retry</Button></p></div>}
+    {eventError && <div role="alert" className="text-xs text-muted-foreground p-2 bg-muted/50 rounded"><p>⚠️ Could not load history. <Button variant="link" className="h-auto p-0 text-xs" onClick={() => void reloadEvents()}>Retry</Button></p></div>}
+    {commitError && <div role="alert" className="text-xs text-muted-foreground p-2 bg-muted/50 rounded"><p>⚠️ Could not load commits.</p></div>}
+
+    {/* Show loading state only when ALL sources are loading */}
+    {allLoading ? <div aria-label="Loading activity" className="flex flex-col gap-3"><Skeleton className="h-16" /><Skeleton className="h-16" /></div> : <ol aria-label="Activity thread" className="flex flex-col gap-5">{activity.map(item => {
       const user = users.find(user => user.id === item.userId)
       return <motion.li key={item.id} initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : 0.18 }} className="flex min-w-0 gap-2">
         {user && <UserAvatar user={user} size="sm" />}
