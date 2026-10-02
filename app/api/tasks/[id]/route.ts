@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getCurrentUserFromCookies } from '@/lib/auth'
+import { sendTelegramNotification } from '@/lib/telegram'
 
 export async function GET(
   request: NextRequest,
@@ -102,6 +103,36 @@ export async function PATCH(
           createdAt: now
         }
       })
+    }
+
+    // Send Telegram notification if assignee was changed
+    if (assigneeId && assigneeId !== oldTask.assigneeId) {
+      try {
+        const assignee = await prisma.user.findUnique({
+          where: { id: assigneeId },
+          select: { telegramChatId: true }
+        })
+
+        if (assignee?.telegramChatId) {
+          const project = await prisma.project.findUnique({
+            where: { id: task.projectId },
+            select: { name: true }
+          })
+
+          if (project) {
+            await sendTelegramNotification(
+              assignee.telegramChatId,
+              task.title,
+              project.name,
+              task.priority,
+              task.dueDate
+            )
+          }
+        }
+      } catch (error) {
+        // Log but don't fail the update if notification fails
+        console.error('[tasks] Failed to send Telegram notification:', error)
+      }
     }
 
     return NextResponse.json(task)
